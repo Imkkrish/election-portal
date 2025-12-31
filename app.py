@@ -34,6 +34,122 @@ app.config['WTF_CSRF_ENABLED'] = True
 # Enable CSRF protection
 csrf = CSRFProtect(app)
 
+# ============ AUTO-INITIALIZE DATABASE ============
+def auto_initialize():
+    """Auto-initialize database on first request if tables don't exist."""
+    import sqlite3
+    import json
+    
+    DATABASE = 'election.db'
+    
+    # Check if database needs initialization
+    try:
+        conn = sqlite3.connect(DATABASE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM users")
+        count = cursor.fetchone()[0]
+        conn.close()
+        if count > 0:
+            return  # Already initialized
+    except sqlite3.OperationalError:
+        pass  # Table doesn't exist, need to initialize
+    
+    print("=" * 50)
+    print("AUTO-INITIALIZING DATABASE...")
+    print("=" * 50)
+    
+    # Initialize schema
+    with open('schema.sql', 'r') as f:
+        schema = f.read()
+    
+    conn = sqlite3.connect(DATABASE)
+    conn.executescript(schema)
+    conn.commit()
+    print("✓ Schema created")
+    
+    # Create admin user
+    conn.execute(
+        "INSERT OR IGNORE INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)",
+        ('Admin', 'admin@club.com', 'ADMIN', True)
+    )
+    conn.commit()
+    print("✓ Admin user created")
+    
+    # Seed candidates
+    from seed_candidates import VP_CANDIDATES, ALL_NOMINEES
+    categories = {
+        'VP': VP_CANDIDATES,
+        'GS': ALL_NOMINEES,
+        'JS1': ALL_NOMINEES,
+        'JS2': ALL_NOMINEES,
+        'EXEC_TECH': ALL_NOMINEES,
+        'EXEC_DESIGN': ALL_NOMINEES,
+        'EXEC_PR': ALL_NOMINEES,
+    }
+    
+    for category, candidates in categories.items():
+        for name in candidates:
+            conn.execute(
+                "INSERT OR IGNORE INTO candidates (name, category) VALUES (?, ?)",
+                (name, category)
+            )
+    conn.commit()
+    print("✓ Candidates seeded")
+    
+    # Seed members from Firebase
+    FIREBASE_EXPORT = 'soc-ccpc-cuj-default-rtdb-export.json'
+    if os.path.exists(FIREBASE_EXPORT):
+        with open(FIREBASE_EXPORT, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        users = data.get('users', {})
+        for profile_id, user_data in users.items():
+            if not user_data.get('completeProfile', False):
+                continue
+            if not user_data.get('isMember', False):
+                continue
+            
+            name = user_data.get('name', '').strip()
+            email = user_data.get('email', '').strip().lower()
+            
+            if not name or not email:
+                continue
+            
+            conn.execute(
+                "INSERT OR IGNORE INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)",
+                (name, email, profile_id, False)
+            )
+        
+        # Add members with manually specified emails
+        conn.execute(
+            "INSERT OR IGNORE INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)",
+            ('Basil Joy', 'basil.23190503023@cuj.ac.in', 'ZnStO6ic3fM6MQLiI5iUBZnyyC63', False)
+        )
+        conn.execute(
+            "INSERT OR IGNORE INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)",
+            ('Shashi Kumari Verma', 'shashi.24190503050@cuj.ac.in', 's8ZKdaxsWPWl1hQoTDhon47uy9O2', False)
+        )
+        conn.commit()
+        print("✓ Members seeded from Firebase")
+    
+    # Count totals
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM users")
+    user_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM candidates")
+    cand_count = cursor.fetchone()[0]
+    conn.close()
+    
+    print(f"✓ Total users: {user_count}")
+    print(f"✓ Total candidates: {cand_count}")
+    print("=" * 50)
+    print("DATABASE INITIALIZATION COMPLETE!")
+    print("=" * 50)
+
+# Run auto-initialization when module loads
+with app.app_context():
+    auto_initialize()
+
 # Register database cleanup
 app.teardown_appcontext(close_db)
 
