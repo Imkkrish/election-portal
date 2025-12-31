@@ -12,13 +12,14 @@ from flask import g
 DATABASE = 'election.db'
 
 # Valid voting categories
-CATEGORIES = ['VP', 'GS', 'JS1', 'JS2', 'EXEC_TECH', 'EXEC_DESIGN', 'EXEC_PR']
+CATEGORIES = ['VP', 'GS', 'JS1', 'JS2', 'TREASURER', 'EXEC_TECH', 'EXEC_DESIGN', 'EXEC_PR']
 
 CATEGORY_NAMES = {
     'VP': 'Vice President',
     'GS': 'General Secretary',
     'JS1': 'Joint Secretary 1',
     'JS2': 'Joint Secretary 2',
+    'TREASURER': 'Treasurer',
     'EXEC_TECH': 'Tech Executive',
     'EXEC_DESIGN': 'Design Executive',
     'EXEC_PR': 'PR Executive'

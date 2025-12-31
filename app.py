@@ -76,12 +76,13 @@ def auto_initialize():
     print("✓ Admin user created")
     
     # Seed candidates
-    from seed_candidates import VP_CANDIDATES, ALL_NOMINEES
+    from seed_candidates import VP_CANDIDATES, TREASURER_CANDIDATES, ALL_NOMINEES
     categories = {
         'VP': VP_CANDIDATES,
         'GS': ALL_NOMINEES,
         'JS1': ALL_NOMINEES,
         'JS2': ALL_NOMINEES,
+        'TREASURER': TREASURER_CANDIDATES,
         'EXEC_TECH': ALL_NOMINEES,
         'EXEC_DESIGN': ALL_NOMINEES,
         'EXEC_PR': ALL_NOMINEES,

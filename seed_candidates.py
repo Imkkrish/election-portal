@@ -40,6 +40,13 @@ VP_CANDIDATES = [
     "Krish Kumar",
 ]
 
+# Treasurer nominees (TREASURER) - separate list
+TREASURER_CANDIDATES = [
+    "Basil Joy",
+    "Apurba Das",
+    "Aditya Singh Chandel",
+]
+
 # All other categories get all 17 nominees
 GS_CANDIDATES = ALL_NOMINEES.copy()
 JS1_CANDIDATES = ALL_NOMINEES.copy()
@@ -61,6 +68,7 @@ def seed_candidates():
         'GS': GS_CANDIDATES,
         'JS1': JS1_CANDIDATES,
         'JS2': JS2_CANDIDATES,
+        'TREASURER': TREASURER_CANDIDATES,
         'EXEC_TECH': EXEC_TECH_CANDIDATES,
         'EXEC_DESIGN': EXEC_DESIGN_CANDIDATES,
         'EXEC_PR': EXEC_PR_CANDIDATES,
@@ -95,6 +103,7 @@ def seed_candidates():
     print(f"GS candidates inserted:          {results['GS']}")
     print(f"JS1 candidates inserted:         {results['JS1']}")
     print(f"JS2 candidates inserted:         {results['JS2']}")
+    print(f"TREASURER candidates inserted:   {results['TREASURER']}")
     print(f"EXEC_TECH candidates inserted:   {results['EXEC_TECH']}")
     print(f"EXEC_DESIGN candidates inserted: {results['EXEC_DESIGN']}")
     print(f"EXEC_PR candidates inserted:     {results['EXEC_PR']}")
