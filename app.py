@@ -177,7 +177,7 @@ def admin_required(f):
         user = get_user_by_id(session['user_id'])
         if not user or not user['is_admin']:
             flash('Admin access required.', 'danger')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('ranked_dashboard'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -188,7 +188,7 @@ def election_active_required(f):
     def decorated_function(*args, **kwargs):
         if not is_election_active():
             flash('Voting is currently closed.', 'warning')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('ranked_dashboard'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -214,7 +214,7 @@ def inject_globals():
 def login():
     """Login page - authenticate with email + CCPC profile URL."""
     if 'user_id' in session:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('ranked_dashboard'))
     
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
@@ -229,7 +229,7 @@ def login():
             
             if user['is_admin']:
                 return redirect(url_for('admin'))
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('ranked_dashboard'))
         else:
             flash('Invalid credentials. Please check your email and CCPC profile link.', 'danger')
     
@@ -243,7 +243,7 @@ def admin_login():
         user = get_user_by_id(session['user_id'])
         if user and user['is_admin']:
             return redirect(url_for('admin'))
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('ranked_dashboard'))
     
     if request.method == 'POST':
         password = request.form.get('password', '').strip()
@@ -290,6 +290,12 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    """Redirect to ranked dashboard."""
+    return redirect(url_for('ranked_dashboard'))
+
+@app.route('/legacy-dashboard')
+@login_required
+def legacy_dashboard():
     """Voting dashboard showing all categories with per-position status."""
     user = get_user_by_id(session['user_id'])
     voter_hash = generate_voter_hash(user['id'], app.secret_key)
@@ -550,24 +556,24 @@ def ranked_vote_page(position):
     """Show ranked voting page for a position."""
     if position not in CATEGORIES:
         flash('Invalid position.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('ranked_dashboard'))
     
     if not is_position_active(position):
         flash(f'Voting for {CATEGORY_NAMES[position]} is currently closed.', 'warning')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('ranked_dashboard'))
     
     user = get_user_by_id(session['user_id'])
     voter_hash = generate_voter_hash(user['id'], app.secret_key)
     
     if has_voted_for_position(voter_hash, position):
         flash('You have already voted for this position.', 'warning')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('ranked_dashboard'))
     
     candidates = get_candidates_by_category(position)
     
     if not candidates:
         flash('No candidates available for this position.', 'warning')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('ranked_dashboard'))
     
     return render_template(
         'ranked_vote.html',
@@ -583,18 +589,18 @@ def submit_ranked_vote(position):
     """Submit ranked preference votes."""
     if position not in CATEGORIES:
         flash('Invalid position.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('ranked_dashboard'))
     
     if not is_position_active(position):
         flash(f'Voting for {CATEGORY_NAMES[position]} is currently closed.', 'warning')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('ranked_dashboard'))
     
     user = get_user_by_id(session['user_id'])
     voter_hash = generate_voter_hash(user['id'], app.secret_key)
     
     if has_voted_for_position(voter_hash, position):
         flash('You have already voted for this position.', 'warning')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('ranked_dashboard'))
     
     # Parse ranked candidates from form
     ranked_ids_str = request.form.get('ranked_candidates', '')
