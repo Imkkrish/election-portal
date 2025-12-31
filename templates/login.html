@@ -1,65 +1,52 @@
-<!doctype html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Class Representative Election</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='loginstyle.css') }}">
-</head>
-<body>
-    <div class="main-container">
-        <!-- Navigation Bar -->
-        <nav class="nav-container">
-            <ul class="nav-list">
-                <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('register_candidate') }}">Register as Candidate</a></li>
-                <li><a href="{{ url_for('login') }}">Login</a></li>
-            </ul>
-        </nav>
+{% extends "base.html" %}
 
-        <!-- Header -->
-        <header class="header-container">
-            <h1>Login</h1>
-            <p>Please choose your login type:</p>
-        </header>
+{% block title %}Login - Election Portal{% endblock %}
 
-        <!-- User Login Section -->
-        <section id="user-login" class="glass-container login-section">
-            <h2>User Login</h2>
-            <p>Login here to vote</p>
-            <form method="POST" action="{{ url_for('login_user') }}">
-                <div class="input-group">
-                    <label for="username">Username:</label>
-                    <input type="text" name="username" required>
-                </div>
-                <div class="input-group">
-                    <label for="registration_number">Registration Number:</label>
-                    <input type="text" name="registration_number" required>
-                </div>
-                <button type="submit" class="btn">Login as User</button>
-            </form>
-        </section>
-
-        <!-- Candidate Login Section -->
-        <section id="candidate-login" class="glass-container login-section">
-            <h2>Candidate Login</h2>
-            <form method="POST" action="{{ url_for('login_candidate') }}">
-                <div class="input-group">
-                    <label for="candidate_username">Registration No:</label>
-                    <input type="text" name="candidate_username" required>
-                </div>
-                <div class="input-group">
-                    <label for="candidate_password">Password:</label>
-                    <input type="password" name="candidate_password" required>
-                </div>
-                <button type="submit" class="btn">Login as Candidate</button>
-            </form>
-        </section>
-
-        <!-- Footer -->
-        <footer class="footer-container">
-            <p>&copy; 2024 Class Representative Election Portal - Krish</p>
-        </footer>
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>🗳️ Election Portal</h1>
+            <p>Club Member Voting System</p>
+        </div>
+        
+        <form method="POST" class="auth-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label for="email">CcpC Login Email</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required 
+                    placeholder="name.rollno@cuj.ac.in"
+                    autocomplete="email"
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="ccpc_url">CCPC Profile Link</label>
+                <input 
+                    type="url" 
+                    id="ccpc_url" 
+                    name="ccpc_url" 
+                    required 
+                    placeholder="https://ccpc-cuj.web.app/profile/..."
+                    autocomplete="off"
+                >
+                <small class="form-hint">Paste your full CCPC profile URL</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full">
+                Login to Vote
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Only registered club members can vote</p>
+            <a href="{{ url_for('admin_login') }}" class="admin-link">Admin Login →</a>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

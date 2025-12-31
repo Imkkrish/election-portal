@@ -1,324 +1,364 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-from flask_mysqldb import MySQL
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-import time
+"""
+Election Portal - Main Flask Application
+A secure web-based election system for club member voting.
+Passwordless authentication via email + CCPC profile URL.
+"""
+
 import os
-import shutil
+from functools import wraps
+from flask import Flask, render_template, request, redirect, url_for, flash, session, g
+from flask_wtf.csrf import CSRFProtect
 
-for root, dirs, files in os.walk('.', topdown=False):
-    for name in dirs:
-        if name == '__pycache__':
-            shutil.rmtree(os.path.join(root, name))
+import models
+from models import (
+    get_db, close_db, init_db,
+    get_user_by_email, get_user_by_id, authenticate_member,
+    get_candidates_by_category, generate_voter_hash,
+    get_voted_categories, record_vote, has_voted_in_category,
+    is_election_active, toggle_election, get_election_status,
+    get_results, get_total_voters,
+    CATEGORIES, CATEGORY_NAMES
+)
 
+# Initialize Flask app
 app = Flask(__name__)
-app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-app.secret_key = 'your_secret_key'
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['WTF_CSRF_ENABLED'] = True
 
-# MySQL configurations
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'MySQL123'
-app.config['MYSQL_DB'] = 'voting_app'
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+# Enable CSRF protection
+csrf = CSRFProtect(app)
 
-mysql = MySQL(app)
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Register database cleanup
+app.teardown_appcontext(close_db)
 
-# Candidate Registration Route
-@app.route('/register_candidate', methods=['GET', 'POST'])
-def register_candidate():
-    if request.method == 'POST':
-        name = request.form['name']
-        department = request.form['department']
-        year = request.form['year']
-        vision = request.form['vision']
-        username = request.form['username']
-        password = request.form['password']
 
-        hashed_password = generate_password_hash(password)
-        image = request.files['image']
-        filename = None
-        if image:
-            filename = secure_filename(image.filename)
-            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+# ============ DECORATORS ============
 
-        try:
-            cur = mysql.connection.cursor()
-            cur.execute(
-                "INSERT INTO candidates (image, name, department, year, vision, username, password) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (filename, name, department, year, vision, username, hashed_password)
-            )
-            mysql.connection.commit()
-            cur.close()
-            flash('Candidate registered successfully!', 'success')
-            return redirect(url_for('home'))
-        except Exception as e:
-            print("Error during candidate registration:", e)
-            flash('Error registering candidate. Please try again.', 'danger')
+def login_required(f):
+    """Decorator to require login for routes."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
-    return render_template('register_candidate.html')
 
-@app.route('/')
-def home():
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT id, image, name, vision, username FROM candidates")
-        candidates = cur.fetchall()
-        cur.close()
-    except Exception as e:
-        print("Error fetching candidates:", e)
-        candidates = []
-    return render_template('home.html', candidates=candidates)
+def admin_required(f):
+    """Decorator to require admin login for routes."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('login'))
+        user = get_user_by_id(session['user_id'])
+        if not user or not user['is_admin']:
+            flash('Admin access required.', 'danger')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def election_active_required(f):
+    """Decorator to require active election for voting."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not is_election_active():
+            flash('Voting is currently closed.', 'warning')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+# ============ CONTEXT PROCESSORS ============
+
+@app.context_processor
+def inject_globals():
+    """Inject global variables into all templates."""
+    user = None
+    if 'user_id' in session:
+        user = get_user_by_id(session['user_id'])
+    return {
+        'current_user': user,
+        'election_active': is_election_active(),
+        'CATEGORY_NAMES': CATEGORY_NAMES
+    }
+
+
+# ============ AUTH ROUTES ============
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Login page - authenticate with email + CCPC profile URL."""
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        # Example of checking credentials
-        user = validate_user(username, password)  # Ensure this function exists and returns the user if valid
+        email = request.form.get('email', '').strip().lower()
+        ccpc_url = request.form.get('ccpc_url', '').strip()
+        
+        # Authenticate using email + CCPC profile
+        user = authenticate_member(email, ccpc_url)
         
         if user:
-            session['user_id'] = user.id  # Save user in session
-            return redirect(url_for('candidate_dashboard'))
+            session['user_id'] = user['id']
+            flash(f'Welcome, {user["name"]}!', 'success')
+            
+            if user['is_admin']:
+                return redirect(url_for('admin'))
+            return redirect(url_for('dashboard'))
         else:
-            return "Invalid credentials, please try again."
+            flash('Invalid credentials. Please check your email and CCPC profile link.', 'danger')
+    
     return render_template('login.html')
-@app.route('/login_candidate', methods=['POST'])
-def login_candidate():
-    candidate_username = request.form['candidate_username']
-    candidate_password = request.form['candidate_password']
-    print(f"Candidate Username: {candidate_username}")
 
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM candidates WHERE username=%s", (candidate_username,))
-        candidate = cur.fetchone()
-        cur.close()
 
-        if candidate:
-            print(f"Candidate Found: {candidate}")
-            stored_password = candidate[7]  # Adjust based on DB structure
-
-            if check_password_hash(stored_password, candidate_password):
-                session['user_id'] = candidate[0]  # Set user ID in session
-                flash('Logged in successfully as Candidate!', 'success')
-                return redirect(url_for('candidate_dashboard'))
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    """Admin login page - password-based authentication."""
+    if 'user_id' in session:
+        user = get_user_by_id(session['user_id'])
+        if user and user['is_admin']:
+            return redirect(url_for('admin'))
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password', '').strip()
+        
+        # Simple admin password check
+        ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+        
+        if password == ADMIN_PASSWORD:
+            # Get or create admin user
+            admin = get_user_by_email('admin@club.com')
+            if admin:
+                session['user_id'] = admin['id']
+                flash('Welcome, Admin!', 'success')
+                return redirect(url_for('admin'))
             else:
-                flash('Invalid candidate credentials', 'danger')
-                print("Password check failed")
+                flash('Admin account not found.', 'danger')
         else:
-            flash('Candidate not found', 'danger')
-            print("Candidate not found")
-
-    except Exception as e:
-        print("Error during candidate login:", e)
-        flash('Candidate login failed. Please try again.', 'danger')
-
-    return redirect(url_for('login'))
-
-# Function to fetch candidate data
-def fetch_candidate_from_db(user_id):
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM candidates WHERE id = %s", (user_id,))
-        candidate = cur.fetchone()
-        cur.close()
-        return candidate
-    except Exception as e:
-        print("Error fetching candidate from database:", e)
-        return None
-# candidate_dashboard route
-@app.route('/candidate_dashboard')
-def candidate_dashboard():
-    # Check if user_id is in session
-    if 'user_id' not in session:
-        flash('You must be logged in to access this page.', 'danger')
-        return redirect(url_for('login'))
+            flash('Invalid admin password.', 'danger')
     
-    # Fetch candidate data based on the user_id in session
-    candidate = fetch_candidate_from_db(session['user_id'])
-    
-    # Handle case where candidate data is not found
-    if candidate is None:
-        flash('Candidate data not found', 'danger')
-        return redirect(url_for('home'))
-    
-    # Pass the current time as a variable to the template
-    return render_template('candidate_dashboard.html', candidate=candidate, cache_bust=time.time())
-# Login helper function to validate user credentials
-def validate_user(username, password):
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user = cur.fetchone()
-        cur.close()
-
-        if user and check_password_hash(user[3], password):  # Check stored password hash
-            return user  # Return user details if authentication is successful
-    except Exception as e:
-        print("Error validating user:", e)
-    return None
+    return render_template('admin_login.html')
 
 
 @app.route('/logout')
 def logout():
-    session.clear()  # Clear all session data to log out the user
+    """Logout and clear session."""
+    session.clear()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('login'))  # Redirect to login page after logout
+    return redirect(url_for('login'))
 
-@app.route('/withdraw_candidate', methods=['POST'])
-def withdraw_candidate():
-    if 'user_id' not in session:  # Ensure user is logged in
-        flash('You need to be logged in to withdraw.', 'danger')
-        return redirect(url_for('login'))
+
+# ============ VOTING ROUTES ============
+
+@app.route('/')
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Voting dashboard showing all categories."""
+    user = get_user_by_id(session['user_id'])
+    voter_hash = generate_voter_hash(user['id'], app.secret_key)
+    voted_categories = get_voted_categories(voter_hash)
     
-    try:
-        cur = mysql.connection.cursor()
-        # Delete the candidate's record from the database using the session user_id
-        cur.execute("DELETE FROM candidates WHERE id = %s", (session['user_id'],))
-        mysql.connection.commit()
-        cur.close()
-        
-        session.clear()  # Log the user out after withdrawal
-        flash('You have successfully withdrawn from the election.', 'success')
-        return redirect(url_for('home'))  # Redirect to home after successful withdrawal
-    except Exception as e:
-        print("Error withdrawing candidate:", e)
-        flash('An error occurred. Please try again.', 'danger')
-        return redirect(url_for('candidate_dashboard'))
-
-@app.route('/login_user', methods=['POST'])
-def login_user():
-    username = request.form['username']
-    registration_number = request.form['registration_number']  # Matches 'registration_number' column in the database
-
-    try:
-        cur = mysql.connection.cursor()
-        # Fetch user from the database using the provided username and registration_number
-        cur.execute("SELECT userid, username, registration_number FROM users WHERE username = %s AND registration_number = %s", (username, registration_number))
-        user = cur.fetchone()
-        cur.close()
-
-        if user:
-            # Store the user's ID in the session to track their login state
-            session['user_id'] = user[0]  # userid column is at index 0
-            flash("Logged in successfully!", "success")
-            return redirect(url_for('vote'))
-        else:
-            flash("Invalid username or registration number. Please try again.", "danger")
-
-    except Exception as e:
-        print("Error during user login:", e)
-        flash("An error occurred during login. Please try again.", "danger")
-
-    return redirect(url_for('login'))  # Redirect back to login on failure
-
-@app.route('/vote', methods=['GET', 'POST'])
-def vote():
-    if 'user_id' not in session:
-        flash('Please log in to vote.', 'danger')
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-
-    try:
-        conn = mysql.connection
-        cursor = conn.cursor()
-
-        # Fetch the username based on the user_id in session
-        cursor.execute("SELECT username FROM users WHERE userid = %s", (user_id,))
-        user = cursor.fetchone()
-        username = user[0] if user else "Guest"  # Default to "Guest" if no user found
-
-        # Check if the logged-in user has already voted
-        cursor.execute("SELECT has_voted FROM users WHERE userid = %s", (user_id,))
-        has_voted_result = cursor.fetchone()
-
-        # Handle cases where the user is not found in the `users` table
-        if not has_voted_result:
-            flash("User not found. Please log in again.", 'danger')
-            return redirect(url_for('login'))
-
-        has_voted = has_voted_result[0]
-
-        # Redirect if the user has already voted
-        if has_voted:
-            flash("You have already voted. Thank you!", 'info')
-            return redirect(url_for('home'))
-
-        cursor.execute("SELECT id, name, vision, image FROM candidates")
-        candidates = cursor.fetchall()
-
-        # Handle POST request to record the vote
-        if request.method == 'POST':
-            candidate_id = request.form['candidate_id']
-
-            # Record the user's vote
-            try:
-                cursor.execute("INSERT INTO votes (candidate_id, user_id) VALUES (%s, %s)", (candidate_id, user_id))
-                cursor.execute("UPDATE users SET has_voted = TRUE WHERE userid = %s", (user_id,))
-                conn.commit()
-                flash("Thank you for voting!", 'success')
-                
-                # Clear session to log out the user
-                session.clear()
-                
-                return redirect(url_for('login'))
-            except Exception as e:
-                conn.rollback()
-                flash("An error occurred while voting. Please try again.", 'danger')
-                print("Error during vote recording:", e)
-
-        cursor.close()
-    except Exception as e:
-        print("Database error:", e)
-        flash("An internal server error occurred. Please try again later.", 'danger')
-
-    # Pass the `username` to the template
-    return render_template('vote.html', candidates=candidates, username=username)
+    categories_status = []
+    for cat in CATEGORIES:
+        categories_status.append({
+            'code': cat,
+            'name': CATEGORY_NAMES[cat],
+            'voted': cat in voted_categories
+        })
+    
+    all_voted = len(voted_categories) == len(CATEGORIES)
+    
+    return render_template(
+        'dashboard.html',
+        categories=categories_status,
+        all_voted=all_voted,
+        election_active=is_election_active()
+    )
 
 
-@app.route('/results', methods=['GET', 'POST'])
-def results():
-    # Set developer password for accessing the results page
-    developer_password = '12345'  # Replace with an actual secure password
-
+@app.route('/vote/<category>', methods=['GET', 'POST'])
+@login_required
+@election_active_required
+def vote(category):
+    """Vote in a specific category."""
+    if category not in CATEGORIES:
+        flash('Invalid category.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    user = get_user_by_id(session['user_id'])
+    voter_hash = generate_voter_hash(user['id'], app.secret_key)
+    
+    # Check if already voted
+    if has_voted_in_category(voter_hash, category):
+        flash('You have already voted in this category.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    candidates = get_candidates_by_category(category)
+    
+    if not candidates:
+        flash('No candidates available for this category.', 'warning')
+        return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
-        entered_password = request.form['password']
-
-        # Verify entered password
-        if entered_password == developer_password:
-            try:
-                cur = mysql.connection.cursor()
-
-                # Fetch candidate names, registration numbers, and vote counts
-                cur.execute("""
-                    SELECT candidates.name, candidates.username, COUNT(votes.vote_id) AS vote_count
-                    FROM votes
-                    INNER JOIN candidates ON candidates.id = votes.candidate_id
-                    GROUP BY candidates.id
-                    ORDER BY vote_count DESC
-                """)
-                
-                # Fetch all rows in descending order of vote count
-                result_data = cur.fetchall()
-                cur.close()
-                
-                # Render results with fetched data
-                return render_template('result.html', results=result_data)
-            except Exception as e:
-                print("Error fetching results:", e)
-                flash("An error occurred while fetching results. Please try again later.", 'danger')
-                return redirect(url_for('results'))
+        candidate_id = request.form.get('candidate_id')
+        
+        if not candidate_id:
+            flash('Please select a candidate.', 'danger')
+            return render_template(
+                'vote.html',
+                category=category,
+                category_name=CATEGORY_NAMES[category],
+                candidates=candidates
+            )
+        
+        try:
+            candidate_id = int(candidate_id)
+        except ValueError:
+            flash('Invalid candidate selection.', 'danger')
+            return redirect(url_for('vote', category=category))
+        
+        # Record the vote
+        success, message = record_vote(category, candidate_id, voter_hash)
+        
+        if success:
+            return redirect(url_for('confirmation'))
         else:
-            flash('Incorrect password. Access denied.', 'danger')
+            flash(message, 'danger')
+            return redirect(url_for('dashboard'))
     
-    # Render password entry form for the GET request
-    return render_template('password_entry.html')
+    return render_template(
+        'vote.html',
+        category=category,
+        category_name=CATEGORY_NAMES[category],
+        candidates=candidates
+    )
 
+
+@app.route('/confirmation')
+@login_required
+def confirmation():
+    """Vote confirmation page."""
+    return render_template('confirmation.html')
+
+
+# ============ ADMIN ROUTES ============
+
+@app.route('/admin')
+@admin_required
+def admin():
+    """Admin dashboard."""
+    results = get_results()
+    election_status = get_election_status()
+    total_voters = get_total_voters()
+    
+    return render_template(
+        'admin.html',
+        results=results,
+        election_status=election_status,
+        total_voters=total_voters,
+        categories=CATEGORIES,
+        category_names=CATEGORY_NAMES
+    )
+
+
+@app.route('/admin/toggle', methods=['POST'])
+@admin_required
+def admin_toggle():
+    """Toggle election status."""
+    new_status = toggle_election()
+    status_text = 'started' if new_status else 'stopped'
+    flash(f'Election has been {status_text}.', 'success')
+    return redirect(url_for('admin'))
+
+
+@app.route('/admin/export')
+@admin_required
+def admin_export():
+    """Export results as CSV."""
+    from flask import Response
+    import csv
+    import io
+    
+    results = get_results()
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Category', 'Candidate', 'Votes'])
+    
+    for category in CATEGORIES:
+        if category in results:
+            for candidate in results[category]:
+                writer.writerow([
+                    CATEGORY_NAMES[category],
+                    candidate['name'],
+                    candidate['votes']
+                ])
+    
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment;filename=election_results.csv'}
+    )
+
+
+# ============ ERROR HANDLERS ============
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template('error.html', error='Page not found'), 404
+
+
+@app.errorhandler(500)
+def server_error(e):
+    return render_template('error.html', error='Internal server error'), 500
+
+
+# ============ CLI COMMANDS ============
+
+@app.cli.command('init-db')
+def init_db_command():
+    """Initialize the database."""
+    init_db(app)
+    print('Database initialized.')
+
+
+@app.cli.command('add-member')
+def add_member_command():
+    """Add a member."""
+    from models import create_member
+    name = input('Name: ')
+    email = input('Email: ')
+    ccpc_id = input('CCPC Profile ID: ')
+    if create_member(name, email, ccpc_id):
+        print(f'Member {email} created.')
+    else:
+        print('Error: Email already exists.')
+
+
+@app.cli.command('add-candidate')
+def add_candidate_command():
+    """Add a candidate."""
+    from models import add_candidate
+    name = input('Candidate Name: ')
+    print(f'Categories: {", ".join(CATEGORIES)}')
+    category = input('Category: ').upper()
+    if add_candidate(name, category):
+        print(f'Candidate {name} added to {category}.')
+    else:
+        print('Error: Invalid category.')
+
+
+# ============ MAIN ============
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Initialize database on first run
+    if not os.path.exists('election.db'):
+        init_db(app)
+        print('Database initialized with default admin user.')
+    
+    app.run(debug=True, port=5002)

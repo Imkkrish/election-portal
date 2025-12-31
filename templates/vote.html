@@ -1,50 +1,47 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vote - Class Representative Election</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='vote-style.css') }}">
-</head>
-<body>
-    <div class="container">
-        <nav class="glass-container nav-container">
-            <ul class="nav-list">
-                <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('logout') }}">Logout</a></li>
-            </ul>
-        </nav>
+{% extends "base.html" %}
 
-        <header class="header-glass">
-            <h1>Vote for Your Class Representative</h1>
-            <h3>Hello {{ username }}</h3>
-            <p>Choose your preferred candidate:</p>
-        </header>
-        
-        {% if candidates %}
-            <section class="candidates-container">
-                <form method="POST" class="candidates-form">
-                    {% for candidate in candidates %}
-                    <div class="candidate-card">
-                        {% if candidate[3] %}
-                            <img src="{{ url_for('static', filename='uploads/' + candidate[3]) }}" alt="{{ candidate[1] }}" class="candidate-img">
-                        {% else %}
-                            <p class="no-image">No image available</p>
-                        {% endif %}
-                        <h2 class="candidate-name">{{ candidate[1] }}</h2>
-                        <p class="candidate-vision"><strong>Vision:</strong> {{ candidate[2] }}</p>
-                        <button type="submit" name="candidate_id" value="{{ candidate[0] }}" class="vote-button">Vote for {{ candidate[1] }}</button>
-                    </div>
-                    {% endfor %}
-                </form>
-            </section>
-        {% else %}
-            <p class="no-candidates">No candidates available for voting at this time.</p>
-        {% endif %}
+{% block title %}Vote for {{ category_name }} - Election Portal{% endblock %}
 
-        <footer class="footer-glass">
-            <p>&copy; 2024 Class Representative Election Portal - Krish</p>
-        </footer>
+{% block content %}
+<div class="vote-container">
+    <div class="vote-card">
+        <div class="vote-header">
+            <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+            <h1>{{ category_name }}</h1>
+            <p class="vote-instruction">Select one candidate and submit your vote.</p>
+        </div>
+
+        <form method="POST" class="vote-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="candidates-list">
+                {% for candidate in candidates %}
+                    <label class="candidate-option">
+                        <input 
+                            type="radio" 
+                            name="candidate_id" 
+                            value="{{ candidate['id'] }}" 
+                            required
+                        >
+                        <div class="candidate-info">
+                            <span class="candidate-name">{{ candidate['name'] }}</span>
+                        </div>
+                        <span class="radio-indicator"></span>
+                    </label>
+                {% endfor %}
+            </div>
+
+            <div class="vote-warning">
+                <p>⚠️ <strong>Warning:</strong> Your vote is final and cannot be changed.</p>
+            </div>
+
+            <div class="vote-actions">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-vote">
+                    Submit Vote
+                </button>
+            </div>
+        </form>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

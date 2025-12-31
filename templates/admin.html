@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - Election Portal{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Admin Panel</h1>
+        <div class="admin-stats">
+            <div class="stat">
+                <span class="stat-value">{{ total_voters }}</span>
+                <span class="stat-label">Total Voters</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Election Control -->
+    <div class="admin-section">
+        <h2>Election Control</h2>
+        <div class="election-control">
+            <div class="election-status">
+                {% if election_status and election_status['is_active'] %}
+                    <span class="status-badge status-active">🟢 Election Active</span>
+                    {% if election_status['started_at'] %}
+                        <small>Started: {{ election_status['started_at'] }}</small>
+                    {% endif %}
+                {% else %}
+                    <span class="status-badge status-inactive">🔴 Election Inactive</span>
+                    {% if election_status and election_status['ended_at'] %}
+                        <small>Ended: {{ election_status['ended_at'] }}</small>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <form method="POST" action="{{ url_for('admin_toggle') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% if election_status and election_status['is_active'] %}
+                    <button type="submit" class="btn btn-danger">Stop Election</button>
+                {% else %}
+                    <button type="submit" class="btn btn-success">Start Election</button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="admin-section">
+        <div class="section-header">
+            <h2>Results</h2>
+            <a href="{{ url_for('admin_export') }}" class="btn btn-secondary btn-sm">
+                📥 Export CSV
+            </a>
+        </div>
+        
+        <div class="results-grid">
+            {% for cat in categories %}
+                <div class="result-card">
+                    <h3>{{ category_names[cat] }}</h3>
+                    <div class="result-list">
+                        {% if cat in results %}
+                            {% for candidate in results[cat] %}
+                                <div class="result-row {% if loop.first %}winner{% endif %}">
+                                    <span class="result-name">{{ candidate.name }}</span>
+                                    <span class="result-votes">{{ candidate.votes }} votes</span>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-data">No candidates</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

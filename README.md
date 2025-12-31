@@ -1,77 +1,129 @@
-# Class Representative Election Portal
+# 🗳️ Club Election Portal
 
-This is a web application built using Flask and HTML/CSS for managing and conducting a Class Representative (CR) election. The platform allows students to register as candidates, vote for their preferred candidate, and view election results. It also provides a secure login system for users and candidates.
+A secure, web-based election system for club member voting with strict vote integrity rules.
 
 ## Features
 
-- **User Login**: Users can log in with their registration number to vote in the election.
-- **Candidate Registration**: Candidates can register with their details, including vision statements, image, department, year, and a password for login.
-- **Voting System**: Registered users can vote for candidates, view their profiles, and submit their votes securely.
-- **Admin Features**: The department can verify candidate details, and a password-protected results page allows for viewing the final vote count.
-- **Responsive Design**: The app is designed to be mobile-friendly and includes dynamic components for a seamless experience.
+- **7 Voting Categories**: VP, GS, JS1, JS2, EXEC1, EXEC2, EXEC3
+- **One Vote Per Category**: Database-enforced unique constraint
+- **Anonymous Voting**: Voter ID hashed with SHA256
+- **Time-Locked Voting**: Only when election is active
+- **Admin Panel**: Start/Stop election, view results, export CSV
+- **CSRF Protection**: All forms protected
 
-## Pages
+## Tech Stack
 
-1. **Home Page**: Displays the election portal with options to log in, register as a candidate, and view results.
-2. **Candidate Dashboard**: Displays the details of the logged-in candidate and an option to withdraw from the election.
-3. **Login Page**: Provides login options for both users and candidates.
-4. **Candidate Registration**: A form for students to register as a candidate, uploading their image and providing other necessary details.
-5. **Election Results**: A password-protected page where election results can be viewed once the election ends.
-6. **Voting Page**: Allows users to view the list of candidates and vote for their preferred representative.
+- **Backend**: Python Flask
+- **Database**: SQLite
+- **Templates**: Jinja2
+- **Auth**: Session-based
+- **Security**: werkzeug password hashing, CSRF tokens
 
-## Technologies Used
+## Setup
 
-- **Frontend**: HTML, CSS
-- **Backend**: Flask (Python)
-- **Database**: MySQL (for user, candidate, and voting data)
-- **Styling**: Custom CSS with glassmorphism design elements.
+### 1. Create Virtual Environment
 
-## `database.py` File
-
-The `database.py`  file sets up and manages the MySQL database for the application, creating tables for users, candidates, and votes. Modify it as needed to add or alter tables.
-To initialize the database, run the database.py script.
-
-To initialize the database, simply run the `database.py` script:
-## Installation
-
-To run the project locally:
-
-1. Clone the repository:
-
-    ```bash
-    git clone https://github.com/your-username/class-representative-election-portal.git
-    ```
-
-2. Navigate to the project directory:
-
-    ```bash
-    cd class-representative-election-portal
-    ```
-
-3. Install the required dependencies:
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.Configure your MySQL database connection in `app.py`:
 ```bash
-app.config['MYSQL_HOST'] = 'your_mysql_host'
-app.config['MYSQL_USER'] = 'your_mysql_user'
-app.config['MYSQL_PASSWORD'] = 'your_mysql_password'
-app.config['MYSQL_DB'] = 'voting_app'
+python -m venv venv
+source venv/bin/activate  # Mac/Linux
+# or: venv\Scripts\activate  # Windows
 ```
-5. Run the Flask application:
 
-    ```bash
-    python app.py
-    ```
+### 2. Install Dependencies
 
-6. Open a web browser and go to `http://127.0.0.1:5000` to access the application.
+```bash
+pip install -r requirements.txt
+```
 
-## Contributing
+### 3. Initialize Database
 
-Feel free to fork this project, submit issues, or create pull requests. Any contributions are welcome!
+```bash
+flask init-db
+```
+
+Or simply run the app (auto-initializes on first run).
+
+### 4. Run the Application
+
+```bash
+python app.py
+```
+
+Visit: http://127.0.0.1:5001
+
+## Default Admin Account
+
+- **Email**: admin@club.com
+- **Password**: admin123
+
+⚠️ Change this in production!
+
+## CLI Commands
+
+```bash
+# Initialize database
+flask init-db
+
+# Add a user
+flask add-user
+
+# Add a candidate
+flask add-candidate
+```
+
+## Election Rules
+
+1. Each member votes in all 7 categories: VP, GS, JS1, JS2, EXEC1, EXEC2, EXEC3
+2. **One vote per category** - enforced by database constraint
+3. Votes are **final** - no edit, no delete
+4. Votes are **anonymous** - stored as SHA256 hash
+5. Voting only allowed when admin **activates** the election
+
+## API Routes
+
+| Route              | Method   | Description         |
+| ------------------ | -------- | ------------------- |
+| `/login`           | GET/POST | User login          |
+| `/logout`          | GET      | User logout         |
+| `/dashboard`       | GET      | Voting dashboard    |
+| `/vote/<category>` | GET/POST | Vote in category    |
+| `/confirmation`    | GET      | Vote confirmation   |
+| `/admin`           | GET      | Admin panel         |
+| `/admin/toggle`    | POST     | Start/Stop election |
+| `/admin/export`    | GET      | Export results CSV  |
+
+## Schema
+
+```sql
+-- Users
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  name TEXT, email TEXT UNIQUE,
+  password_hash TEXT, is_admin BOOLEAN
+);
+
+-- Candidates
+CREATE TABLE candidates (
+  id INTEGER PRIMARY KEY,
+  name TEXT, category TEXT
+);
+
+-- Votes (UNIQUE constraint prevents double voting)
+CREATE TABLE votes (
+  id INTEGER PRIMARY KEY,
+  category TEXT, candidate_id INTEGER,
+  voter_hash TEXT,
+  UNIQUE(category, voter_hash)
+);
+```
+
+## Security Notes
+
+- Set `SECRET_KEY` environment variable in production
+- Change default admin password
+- Run behind HTTPS in production
+- Database file (`election.db`) should be secured
 
 ## License
 
-This project is licensed under the MIT License.
+Academic use only.

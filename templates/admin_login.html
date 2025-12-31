@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - Election Portal{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card admin-card">
+        <div class="auth-header">
+            <h1>🔐 Admin Access</h1>
+            <p>Election Management Portal</p>
+        </div>
+        
+        <form method="POST" class="auth-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label for="password">Admin Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    placeholder="Enter admin password"
+                    autocomplete="current-password"
+                >
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full">
+                Login as Admin
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <a href="{{ url_for('login') }}">← Back to Member Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

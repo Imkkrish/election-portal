@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Vote Confirmed - Election Portal{% endblock %}
+
+{% block content %}
+<div class="confirmation-container">
+    <div class="confirmation-card">
+        <div class="confirmation-icon">✓</div>
+        <h1>Vote Recorded!</h1>
+        <p>Your vote has been successfully recorded.</p>
+        <p class="confirmation-note">Your vote is anonymous and cannot be traced back to you.</p>
+        
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            Continue Voting
+        </a>
+    </div>
+</div>
+{% endblock %}
