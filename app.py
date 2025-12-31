@@ -514,12 +514,41 @@ def admin_toggle_position(position_code):
 @admin_required
 def admin_set_timeline(position_code):
     """Set timeline for a specific position."""
+    from datetime import datetime
+    
     opens_at = request.form.get('opens_at', '').strip() or None
     closes_at = request.form.get('closes_at', '').strip() or None
+    
+    # Validation
+    now = datetime.now()
+    error = None
+    
+    if opens_at:
+        try:
+            opens_dt = datetime.fromisoformat(opens_at)
+            if opens_dt < now:
+                error = "Opening time cannot be in the past."
+        except ValueError:
+            error = "Invalid opening time format."
+            
+    if not error and closes_at:
+        try:
+            closes_dt = datetime.fromisoformat(closes_at)
+            if closes_dt < now:
+                error = "Closing time cannot be in the past."
+            if opens_at and closes_dt <= datetime.fromisoformat(opens_at):
+                error = "Closing time must be after opening time."
+        except ValueError:
+            error = "Invalid closing time format."
+    
+    if error:
+        flash(f'Error setting timeline: {error}', 'danger')
+        return redirect(url_for('admin_positions'))
     
     set_position_timeline(position_code, opens_at, closes_at)
     flash(f'Timeline updated for {CATEGORY_NAMES.get(position_code, position_code)}.', 'success')
     return redirect(url_for('admin_positions'))
+
 
 
 @app.route('/admin/compute-results', methods=['POST'])
