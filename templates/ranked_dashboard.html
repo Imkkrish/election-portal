@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Ranked Voting Dashboard - Election Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1>🗳️ Ranked Preference Voting</h1>
+        <p class="subtitle">Rank candidates in order of preference for each position</p>
+    </div>
+
+    {% if all_voted %}
+        <div class="completion-banner">
+            <span class="completion-icon">✅</span>
+            <div>
+                <h2>Thank you for voting!</h2>
+                <p>You have completed voting for all positions.</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="info-banner">
+        <h3>📋 How Ranked Voting Works</h3>
+        <p>
+            Drag candidates to rank them in order of preference. Your first choice gets counted first.
+            If your top choice wins a higher position, your next preference will be counted instead.
+        </p>
+    </div>
+
+    <div class="categories-grid">
+        {% for pos in positions %}
+            <div class="category-card {% if pos.voted %}voted{% endif %} {% if not pos.is_active %}inactive{% endif %}">
+                <div class="category-header">
+                    <h3>{{ pos.name }}</h3>
+                    <span class="category-code">{{ pos.code }}</span>
+                </div>
+                
+                <div class="category-status">
+                    {% if pos.voted %}
+                        <span class="vote-status voted">✓ Vote Recorded</span>
+                    {% elif pos.is_active %}
+                        <span class="vote-status open">🟢 Open</span>
+                    {% else %}
+                        <span class="vote-status closed">🔴 Closed</span>
+                    {% endif %}
+                </div>
+
+                {% if pos.opens_at or pos.closes_at %}
+                    <div class="timeline-info">
+                        {% if pos.opens_at %}
+                            <small>Opens: {{ pos.opens_at }}</small>
+                        {% endif %}
+                        {% if pos.closes_at %}
+                            <small>Closes: {{ pos.closes_at }}</small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <div class="category-action">
+                    {% if pos.voted %}
+                        <button class="btn btn-disabled" disabled>
+                            Completed
+                        </button>
+                    {% elif pos.is_active %}
+                        <a href="{{ url_for('ranked_vote_page', position=pos.code) }}" class="btn btn-primary">
+                            Rank Candidates →
+                        </a>
+                    {% else %}
+                        <button class="btn btn-disabled" disabled>
+                            Voting Closed
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="dashboard-footer">
+        <p class="info-text">
+            📌 Each vote is final and cannot be changed.<br>
+            🔒 Your vote is anonymous and secure.<br>
+            🎯 Rank as many or as few candidates as you wish.
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -16,6 +16,7 @@
                 <span class="nav-user">{{ current_user['name'] }}</span>
                 {% if current_user['is_admin'] %}
                     <a href="{{ url_for('admin') }}" class="nav-link">Admin</a>
+                    <a href="{{ url_for('admin_positions') }}" class="nav-link">Position Control</a>
                 {% endif %}
                 <a href="{{ url_for('logout') }}" class="nav-link btn-logout">Logout</a>
             {% else %}

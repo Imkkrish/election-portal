@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+
+{% block title %}Vote for {{ position_name }} - Election Portal{% endblock %}
+
+{% block content %}
+<div class="vote-page">
+    <div class="vote-header">
+        <a href="{{ url_for('ranked_dashboard') }}" class="back-link">← Back to Dashboard</a>
+        <h1>{{ position_name }}</h1>
+        <p class="vote-instruction">Drag to rank candidates in order of preference</p>
+    </div>
+
+    <div class="ranking-container">
+        <div class="ranking-info">
+            <div class="info-item">
+                <span class="rank-badge">1st</span>
+                <span>Most preferred</span>
+            </div>
+            <div class="info-item">
+                <span class="rank-badge low">Last</span>
+                <span>Least preferred</span>
+            </div>
+        </div>
+
+        <form id="ranked-vote-form" method="POST" action="{{ url_for('submit_ranked_vote', position=position) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="ranked_candidates" id="ranked-candidates-input" value="">
+            
+            <div class="candidates-list" id="sortable-candidates">
+                {% for candidate in candidates %}
+                    <div class="candidate-item" data-id="{{ candidate['id'] }}">
+                        <div class="drag-handle">☰</div>
+                        <div class="candidate-rank"><span class="rank-number">{{ loop.index }}</span></div>
+                        <div class="candidate-info">
+                            <span class="candidate-name">{{ candidate['name'] }}</span>
+                        </div>
+                        <div class="remove-btn" title="Remove from ranking">✕</div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="unranked-section" id="unranked-section" style="display: none;">
+                <h4>Not Ranked (will not receive your vote)</h4>
+                <div class="unranked-candidates" id="unranked-candidates"></div>
+            </div>
+
+            <div class="vote-actions">
+                <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                    Submit Ranking
+                </button>
+                <p class="warning-text">⚠️ Your vote is final and cannot be changed</p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .vote-page {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .vote-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .back-link {
+        display: inline-block;
+        color: var(--text-muted);
+        text-decoration: none;
+        margin-bottom: 1rem;
+    }
+
+    .back-link:hover {
+        color: var(--primary);
+    }
+
+    .vote-instruction {
+        color: var(--text-muted);
+    }
+
+    .ranking-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .rank-badge {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .rank-badge.low {
+        background: linear-gradient(135deg, #6b7280, #4b5563);
+    }
+
+    .candidates-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .candidate-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.05) 100%);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        cursor: grab;
+        transition: all 0.2s ease;
+    }
+
+    .candidate-item:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+
+    .candidate-item.dragging {
+        opacity: 0.5;
+        cursor: grabbing;
+    }
+
+    .drag-handle {
+        color: var(--text-muted);
+        font-size: 1.25rem;
+        cursor: grab;
+    }
+
+    .candidate-rank {
+        min-width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        font-weight: bold;
+        font-size: 0.875rem;
+    }
+
+    .candidate-info {
+        flex: 1;
+    }
+
+    .candidate-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .remove-btn {
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .remove-btn:hover {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .unranked-section {
+        margin: 1.5rem 0;
+        padding: 1rem;
+        background: rgba(239, 68, 68, 0.05);
+        border: 1px dashed #ef4444;
+        border-radius: 8px;
+    }
+
+    .unranked-section h4 {
+        color: #ef4444;
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .unranked-candidates {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .unranked-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        opacity: 0.7;
+    }
+
+    .unranked-item .add-btn {
+        color: var(--primary);
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .unranked-item .add-btn:hover {
+        text-decoration: underline;
+    }
+
+    .vote-actions {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .btn-lg {
+        padding: 1rem 3rem;
+        font-size: 1.1rem;
+    }
+
+    .warning-text {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        margin-top: 1rem;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sortableList = document.getElementById('sortable-candidates');
+    const rankedInput = document.getElementById('ranked-candidates-input');
+    const unrankedSection = document.getElementById('unranked-section');
+    const unrankedContainer = document.getElementById('unranked-candidates');
+    let draggedItem = null;
+
+    // Update rank numbers and hidden input
+    function updateRanks() {
+        const items = sortableList.querySelectorAll('.candidate-item');
+        const ids = [];
+        items.forEach((item, index) => {
+            item.querySelector('.rank-number').textContent = index + 1;
+            ids.push(item.dataset.id);
+        });
+        rankedInput.value = ids.join(',');
+        
+        // Show/hide unranked section
+        unrankedSection.style.display = unrankedContainer.children.length > 0 ? 'block' : 'none';
+    }
+
+    // Drag and drop functionality
+    sortableList.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('candidate-item')) {
+            draggedItem = e.target;
+            e.target.classList.add('dragging');
+        }
+    });
+
+    sortableList.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('candidate-item')) {
+            e.target.classList.remove('dragging');
+            draggedItem = null;
+            updateRanks();
+        }
+    });
+
+    sortableList.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(sortableList, e.clientY);
+        if (draggedItem) {
+            if (afterElement == null) {
+                sortableList.appendChild(draggedItem);
+            } else {
+                sortableList.insertBefore(draggedItem, afterElement);
+            }
+        }
+    });
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.candidate-item:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // Make items draggable
+    sortableList.querySelectorAll('.candidate-item').forEach(item => {
+        item.draggable = true;
+    });
+
+    // Remove button functionality
+    sortableList.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-btn')) {
+            const item = e.target.closest('.candidate-item');
+            const name = item.querySelector('.candidate-name').textContent;
+            const id = item.dataset.id;
+            
+            // Create unranked item
+            const unrankedItem = document.createElement('div');
+            unrankedItem.className = 'unranked-item';
+            unrankedItem.dataset.id = id;
+            unrankedItem.innerHTML = `
+                <span>${name}</span>
+                <span class="add-btn">+ Add back</span>
+            `;
+            unrankedContainer.appendChild(unrankedItem);
+            
+            // Remove from ranked list
+            item.remove();
+            updateRanks();
+        }
+    });
+
+    // Add back functionality
+    unrankedContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-btn')) {
+            const item = e.target.closest('.unranked-item');
+            const name = item.querySelector('span:first-child').textContent;
+            const id = item.dataset.id;
+            
+            // Create ranked item
+            const rankedItem = document.createElement('div');
+            rankedItem.className = 'candidate-item';
+            rankedItem.dataset.id = id;
+            rankedItem.draggable = true;
+            rankedItem.innerHTML = `
+                <div class="drag-handle">☰</div>
+                <div class="candidate-rank"><span class="rank-number">${sortableList.children.length + 1}</span></div>
+                <div class="candidate-info">
+                    <span class="candidate-name">${name}</span>
+                </div>
+                <div class="remove-btn" title="Remove from ranking">✕</div>
+            `;
+            sortableList.appendChild(rankedItem);
+            
+            // Remove from unranked list
+            item.remove();
+            updateRanks();
+        }
+    });
+
+    // Form submission validation
+    document.getElementById('ranked-vote-form').addEventListener('submit', function(e) {
+        updateRanks();
+        if (!rankedInput.value) {
+            e.preventDefault();
+            alert('Please rank at least one candidate before submitting.');
+        }
+    });
+
+    // Initial update
+    updateRanks();
+});
+</script>
+{% endblock %}

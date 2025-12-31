@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: election-portal
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python -c "from app import app; from models import init_db; init_db(app)"
+    startCommand: gunicorn app:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false  # Set manually in Render dashboard
+    disk:
+      name: election-data
+      mountPath: /opt/render/project/src
+      sizeGB: 1

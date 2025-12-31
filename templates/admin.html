@@ -5,47 +5,57 @@
 {% block content %}
 <div class="admin-container">
     <div class="admin-header">
-        <h1>Admin Panel</h1>
+        <h1>🛡️ Admin Panel</h1>
         <div class="admin-stats">
             <div class="stat">
                 <span class="stat-value">{{ total_voters }}</span>
-                <span class="stat-label">Total Voters</span>
+                <span class="stat-label">Total Voters (Legacy)</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">{{ ranked_voter_count }}</span>
+                <span class="stat-label">Ranked Voters</span>
             </div>
         </div>
     </div>
 
-    <!-- Election Control -->
+    <!-- Quick Position Control -->
     <div class="admin-section">
-        <h2>Election Control</h2>
-        <div class="election-control">
-            <div class="election-status">
-                {% if election_status and election_status['is_active'] %}
-                    <span class="status-badge status-active">🟢 Election Active</span>
-                    {% if election_status['started_at'] %}
-                        <small>Started: {{ election_status['started_at'] }}</small>
+        <div class="section-header">
+            <h2>🎛️ Position Control</h2>
+            <a href="{{ url_for('admin_positions') }}" class="btn btn-primary btn-sm">
+                Full Control Panel →
+            </a>
+        </div>
+        
+        <div class="position-quick-controls">
+            {% for pos in positions %}
+            <div class="position-control-row">
+                <div class="position-info">
+                    <span class="position-name">{{ pos.name }}</span>
+                    <span class="position-code">{{ pos.code }}</span>
+                </div>
+                <div class="position-status">
+                    {% if pos.is_currently_active %}
+                        <span class="status-badge status-active">🟢 Open</span>
+                    {% else %}
+                        <span class="status-badge status-inactive">🔴 Closed</span>
                     {% endif %}
-                {% else %}
-                    <span class="status-badge status-inactive">🔴 Election Inactive</span>
-                    {% if election_status and election_status['ended_at'] %}
-                        <small>Ended: {{ election_status['ended_at'] }}</small>
-                    {% endif %}
-                {% endif %}
+                </div>
+                <form method="POST" action="{{ url_for('admin_toggle_position', position_code=pos.code) }}" class="position-toggle-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm {% if pos.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                        {% if pos.is_active %}Close{% else %}Open{% endif %}
+                    </button>
+                </form>
             </div>
-            <form method="POST" action="{{ url_for('admin_toggle') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                {% if election_status and election_status['is_active'] %}
-                    <button type="submit" class="btn btn-danger">Stop Election</button>
-                {% else %}
-                    <button type="submit" class="btn btn-success">Start Election</button>
-                {% endif %}
-            </form>
+            {% endfor %}
         </div>
     </div>
 
     <!-- Results -->
     <div class="admin-section">
         <div class="section-header">
-            <h2>Results</h2>
+            <h2>📊 Results (Legacy Single-Choice)</h2>
             <a href="{{ url_for('admin_export') }}" class="btn btn-secondary btn-sm">
                 📥 Export CSV
             </a>
@@ -71,5 +81,114 @@
             {% endfor %}
         </div>
     </div>
+
+    <!-- Ranked Results -->
+    {% if winners %}
+    <div class="admin-section">
+        <div class="section-header">
+            <h2>🏆 Computed Winners (Preference-Based)</h2>
+            <a href="{{ url_for('admin_view_results') }}" class="btn btn-primary btn-sm">
+                View Full Results →
+            </a>
+        </div>
+        
+        <div class="winners-grid">
+            {% for winner in winners %}
+            <div class="winner-card">
+                <div class="winner-position">{{ winner['position_name'] }}</div>
+                <div class="winner-name">{{ winner['candidate_name'] }}</div>
+                <div class="winner-votes">{{ winner['vote_count'] }} votes</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<style>
+    .position-quick-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .position-control-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+
+    .position-info {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .position-name {
+        font-weight: 600;
+    }
+
+    .position-code {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        padding: 0.125rem 0.5rem;
+        background: var(--bg-card);
+        border-radius: 4px;
+    }
+
+    .position-status {
+        min-width: 80px;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .winners-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .winner-card {
+        padding: 1rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 12px;
+        text-align: center;
+        color: white;
+    }
+
+    .winner-position {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        margin-bottom: 0.25rem;
+    }
+
+    .winner-name {
+        font-size: 1rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+
+    .winner-votes {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+</style>
 {% endblock %}

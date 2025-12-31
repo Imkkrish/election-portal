@@ -1,0 +1,830 @@
+{
+  "users": {
+    "1KZlRqgPfRWQtE1mC5qbdSdkIwa2": {
+      "completeProfile": false
+    },
+    "2I3nncT3UERhG4ZMJxJwNEpoZ5y1": {
+      "bio": "Third year student of Computer Science and Engineering",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Treasurer",
+      "email": "sandeep.22190503052@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2F2I3nncT3UERhG4ZMJxJwNEpoZ5y1?alt=media&token=61538e99-f797-4332-8f70-a6eeece320e4",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Jamshedpur",
+      "name": "Sandeep Mahato",
+      "phone": "6204484945",
+      "socialLinks": [
+        "https://www.linkedin.com/in/sandeep-mahato-a31b4a256/",
+        "https://github.com/sandeepmahato1"
+      ]
+    },
+    "3OSllyK7okV4S6h35LpIPVC1MCB2": {
+      "bio": "",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "munukutla.23190503042@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Kakinada, Andhra Pradesh",
+      "name": "Munukutla Sri Shanmukha Aditya",
+      "phone": "9676991510",
+      "socialLinks": [
+        "www.linkedin.com/in/m-s-shanmukha-aditya-07891529b",
+        "https://github.com/msaditya1510"
+      ]
+    },
+    "3UZdnFrZSJZByPREjytOetCtb9S2": {
+      "bio": "Want to learn more with the essence of confidence I have...",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Joint Secretary",
+      "email": "apurba.23190503018@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profile_images%2F1000281115.heic?alt=media&token=c90901f7-a6df-4ab8-af7f-58a01f45ca4b",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Rajgangpur",
+      "name": "Apurba Das",
+      "phone": "6371936738"
+    },
+    "4steRHoUNtZBJk2vSXv1Eq5zqnx1": {
+      "bio": "",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "ashish.23190503001@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2F4steRHoUNtZBJk2vSXv1Eq5zqnx1?alt=media&token=8366ec06-1c97-40f4-bb55-eb200657013e",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Bargarh, Odisha",
+      "name": "Ashish Sahu",
+      "phone": "9348545368",
+      "socialLinks": [
+        "https://www.linkedin.com/in/ashish-sahu-537985318/",
+        "https://www.instagram.com/ashis_h_2005_/",
+        ""
+      ]
+    },
+    "5pEiWGlT30RUlHcMFqP77xOO0T13": {
+      "bio": "AI ML, frontend , web development ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member ",
+      "email": "abhishek.23190503003@cuj.ac.in",
+      "imageUrl": "https://vlycbxrafcccxqyvnifb.supabase.co/storage/v1/object/public/CcpC/members_images/5pEiWGlT30RUlHcMFqP77xOO0T13-1757237839408-IMG_20240523_123859_167.jpg",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi ",
+      "name": "Abhishek",
+      "phone": "9911269594"
+    },
+    "6P5X4LppzygyIxpebZNQWhfroQ42": {
+      "bio": "Third year student ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "baibhav.22190503017@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi ",
+      "name": "Baibhav Kr Chandra ",
+      "phone": "9835505852"
+    },
+    "9gIb0MHSjjTDc1eAyzyJ0L0qe3R2": {
+      "bio": "",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "aditya.22190503005@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2F9gIb0MHSjjTDc1eAyzyJ0L0qe3R2?alt=media&token=c86d0ec7-8afd-4c9a-a8b6-3719bca15239",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Boy's Hostel Cuj, Manatu",
+      "name": "Aditya kumar",
+      "phone": "6206106860"
+    },
+    "9lhmZgNefSPtO2aTwTWY7XH66MC3": {
+      "bio": "",
+      "colorGroup": "Recursion rangers",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "samridhi.24190503045@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Samridhi Tripathi ",
+      "phone": "6205746224"
+    },
+    "CdoDwd9nXJNsznHKbMlsqRYjY2a2": {
+      "bio": "Enthusiast",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "namrata.23190503043@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Central University of Jharkhand ",
+      "name": "Namrata Dey ",
+      "phone": "8789938693",
+      "socialLinks": [
+        "https://github.com/namrata2910/namrata-contact-card",
+        "https://www.linkedin.com/in/namrata-dey-7b05b22b8/"
+      ]
+    },
+    "FE9FO4dLssN22QBPz8liIIgj04C2": {
+      "bio": " A Final Year Student at CUJ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Vice President ",
+      "email": "krish.22190503027@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profile_images%2FKrish.png?alt=media&token=ef05b24c-402f-486a-8677-b4bfebd89f4c",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi, Jharkhand",
+      "name": "Krish Kumar",
+      "phone": "9661611105",
+      "projects": {
+        "-OTDvpB1QODYEMX-w-4a": {
+          "deployedLink": "",
+          "description": "Implemented a CNN-based OCR model with 96%+ accuracy, leveraging TensorFlow for word character recognition.",
+          "endDate": "2025-01-31",
+          "isOngoing": false,
+          "repositoryLink": "",
+          "skills": "ML, OpenCV, CNN, RNN, BiLSTM",
+          "startDate": "2024-09-01",
+          "title": "Cursive Handwritten Word Recognition"
+        },
+        "-OTDw8efZ09B19BKPLxM": {
+          "deployedLink": "https://huggingface.co/spaces/imkrish/heart-disease-models",
+          "description": "Developed an interactive web application for heart disease risk prediction using Decision Tree, Logistic Regression, Random Forest, and SVM models.",
+          "endDate": "2025-04-28",
+          "isOngoing": false,
+          "repositoryLink": "",
+          "skills": "ML, CSV, Decision Tree, Logistic Regression, Random Forest, SVM ",
+          "startDate": "2025-03-01",
+          "title": "Heart Disease Prediction Web App"
+        },
+        "-OTDwWDVDvOy2pGzNabe": {
+          "deployedLink": "https://algo-dev-cuj.web.app/",
+          "description": "Designed a live event platform with React.js and Firebase for real-time data updates.",
+          "endDate": "2025-02-15",
+          "isOngoing": false,
+          "repositoryLink": "",
+          "skills": "Firebase, ReactJS ",
+          "startDate": "2025-01-08",
+          "title": "Algo Dev – Event Management System"
+        },
+        "-OTDx2IBXxYYcy1WlOYo": {
+          "deployedLink": "https://quiz-master-krish.onrender.com/",
+          "description": "Designed a quiz system for multiple users to take quizzes based on topics and chapters. Introduced an admin panel to handle quizzes and users effectively. Improved summary reports using pie charts to visualize data more effectively. Developed and designed RESTful APIs with Flask for smooth functionality.",
+          "endDate": "2025-03-31",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/Imkkrish/Quiz-Master",
+          "skills": "Flask, Jinja, SQL, Render, Git , GitHub",
+          "startDate": "2025-02-02",
+          "title": "Quiz Master"
+        }
+      },
+      "socialLinks": [
+        "https://www.instagram.com/imk_krish",
+        "https://www.linkedin.com/in/imkkrish",
+        "https://github.com/Imkkrish",
+        "https://imkkrish.github.io/Portfolio/"
+      ]
+    },
+    "I87C3CSJswXWynQSC2Q8cGNPr8k2": {
+      "bio": "",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member ",
+      "email": "priyanshi.24190503039@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Priyanshi Chaurasia ",
+      "phone": "9905303718"
+    },
+    "IB5dI8nVT0hDWV3VCv5gjaZY6323": {
+      "bio": "",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member ",
+      "email": "vidit.22190503062@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi ",
+      "name": "Vidit Mishra",
+      "phone": "8081769001",
+      "socialLinks": [
+        ""
+      ]
+    },
+    "JMk9NFq08pPLUYm3eA83KpnBX7j2": {
+      "completeProfile": false
+    },
+    "MhwocZMiclcWoutneIDVVDbFw193": {
+      "bio": "",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "hemant.23190503030@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profile_images%2FWhatsApp%20Image%202025-10-04%20at%2019.20.59_f4a0ed81.jpg?alt=media&token=9b6f7aa7-d13b-4ffd-9963-3f2983c90c77",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Katihar, Bihar",
+      "name": "Hemant Prakash",
+      "phone": "8986069309",
+      "socialLinks": [
+        "https://www.linkedin.com/in/hemant-prakash-74381929b/",
+        "https://github.com/hemantprakash2005/"
+      ]
+    },
+    "RV6fBVb42IOcDKV7iyP30MG8JUt2": {
+      "bio": "Member of Code Crafter Club, fostering a culture of innovation and collaboration through coding, peer learning, and real-world problem solving.",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "srishti.23190503052@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profile_images%2FSIDE.jpg?alt=media&token=3cb2e888-7438-4e9c-9b26-0c338f9e001a",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi, Jharkhand",
+      "name": "Srishti Pathak",
+      "phone": "95556 57692",
+      "socialLinks": [
+        "https://www.linkedin.com/in/srishti-pathak-919a89311?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+        "https://www.instagram.com/s.ri.sh.ti",
+        "https://github.com/Srish-pathak"
+      ]
+    },
+    "T7znNjW9N3ZUDO7UFyUF0gWC2nz1": {
+      "bio": "Computer Science student passionate about coding, problem solving, and web development.",
+      "colorGroup": "Greedy coders ",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "sanskar.24190503046@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi, Jharkhand",
+      "name": "Sanskar",
+      "phone": "6200468743",
+      "socialLinks": [
+        "https://www.linkedin.com/in/sanskarsahay/",
+        "https://github.com/sanskarsahay4"
+      ]
+    },
+    "VMiQospoqwUQSBJT4xp7KSIGhpi2": {
+      "bio": "B+",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Student",
+      "email": "aditya.22190503006@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Manatu chowk ring road Ranchi, Jharkhand ",
+      "name": "Aditya Singh ",
+      "phone": "9118023136"
+    },
+    "VyRgQ4vRlrQRnPm540bEsdjYzR92": {
+      "bio": "Founding Member, CcpC | Student Coordinator, T&P Cell | Ex-Cybersecurity Intern,C-DAC Noida | Ex Research Intern, IIT Bhubaneswar (Hybrid) | SDE I Intern ’25, Mircosoft India | Ex Summer Intern, IIT Bhubaneswar (Offline)",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Vice President",
+      "email": "priyanshu.22190503040@cuj.ac.in",
+      "imageUrl": "https://vlycbxrafcccxqyvnifb.supabase.co/storage/v1/object/public/CcpC/members_images/1757240271131-IMG-20250316-WA0013.jpg",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Priyanshu Verma",
+      "phone": "7376021218",
+      "projects": {
+        "-OcJPCK46X-p3GLhMt1a": {
+          "deployedLink": "https://github.com/PriyanshuV17/Object-Detection",
+          "description": "A real-time object detection system using computer vision and deep learning to identify and localise objects in images or video.\nObject Tracking Simulation Project Using OpenCV: MOTA, SOTA, and LSOT\nThis project is a dynamic object tracking simulation developed in Python using OpenCV and other libraries, featuring three primary tracking algorithms: Multi-Object Tracking Algorithm (MOTA), Single-Object Tracking Algorithm (SOTA), and Large Single Object Tracking (LSOT). The simulation allows users to track multiple objects, a single object, or a large dominant object in real-time, with customizable features for each mode.\n\nFeatures\nMulti-Object Tracking (MOTA): Tracks multiple objects in real-time using the MultiTracker class from OpenCV, supporting unique ID assignment and accurate tracking through occlusions.\nSingle-Object Tracking (SOTA): Utilizes OpenCV’s KCF tracker to follow a single object with high precision, adapting to occlusions and fast movements.\nLarge Single Object Tracking (LSOT): Designed for large dominant objects in the frame, maintaining focus and bounding box stability, even with rapid motion.\nInteractive Bounding Box Selection: Allows users to select objects interactively in the first frame, providing flexibility in defining the tracked regions.\nReal-Time Updates: Real-time frame-by-frame object position updates, with consistent visualization of bounding boxes.\nLibraries Used\nOpenCV (cv2): Core library for computer vision tasks, used for object tracking, video processing, and interactive bounding box selection.\nsys: Assists in system control for managing video capture, ensuring a smooth exit if the video stream fails.\nInstallation\nTo run this project, install the required libraries:\n\npip install opencv-python\nUsage\nClone the repository and navigate to the project folder.\n\nRun the simulation script:\n\npython object_tracking_simulation.py\nFollow the prompts to select objects to track:\n\nFor MOTA, select multiple objects by drawing bounding boxes and confirm each by pressing 'c'.\nFor SOTA and LSOT, select a single object to track.\nUse the ESC key to exit the tracking session.\n\nFile Structure\nobject_tracking_simulation.py - Main script implementing MOTA, SOTA, and LSOT with interactive UI.\nREADME.md - Project documentation.\nRequirements\nPython 3.6+\nOpenCV 4.x\nContributing\nFeel free to submit issues or pull requests to improve the functionality or fix any bugs.\n\nThis project is a practical example of using OpenCV for real-time object tracking, suitable for applications in surveillance, motion analysis, and real-world object detection tasks.\n\nPRIYANSHU VERMA\nRegistration Number: 22190503040\nCentral University of Jharkhand\nIntegrated B.Tech-M.Tech (5 years) in Computer Science and Engineering (Honors)\nSpecialization: Machine Learning and Data Science\nDepartment of Computer Science and Engineering\nMobile: +91 7376021218\n\n",
+          "endDate": "2024-08-01",
+          "id": "-OcJPCK46X-p3GLhMt1a",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/PriyanshuV17/Object-Detection",
+          "skills": "Developed proficiency in building object detection pipelines and gained experience in dataset preparation and annotation, learned to employ computer vision libraries (such as OpenCV) for image processing and bounding-box drawing, applied deep learning model integration for detection tasks and optimized inference speed and accuracy, implemented project structuring and version control using Python and Git, and deployed a working prototype capable of drawing bounding boxes around detected objects for practical use",
+          "startDate": "2024-06-01",
+          "title": "Object Tracking Simulation Project Using OpenCV: MOTA, SOTA, and LSO"
+        },
+        "-OcJPiBtTRZcVGv8XMnF": {
+          "deployedLink": "https://huggingface.co/spaces/PriyanshuV17/Hate_Speech_Classifier",
+          "description": "Hate Speech Detection is an NLP-based machine learning project that identifies and classifies text as hate speech, offensive, or clean. Built with Python, scikit-learn, and Flask/FastAPI, it includes a REST API and a Gradio web app for easy testing and deployment. The project demonstrates text preprocessing, model training, and real-time hate speech detection.",
+          "endDate": "2025-10-08",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/PriyanshuV17/Hate-Speech-Detection",
+          "skills": "Natural Language Processing (text cleaning, vectorization)  Machine Learning model development (classification, evaluation)  Data preprocessing & feature engineering for text classification  API development and deployment for ML models  Web interface creation for real-time predictions  Version control and project structuring with Python/Git",
+          "startDate": "2025-10-07",
+          "title": "Hate Speech Detection"
+        },
+        "-OcJQ895c9tz6qsYsgeU": {
+          "deployedLink": "https://github.com/PriyanshuV17/Voice_assistant.ipynb",
+          "description": "A voice-controlled personal assistant built in Python to listen for spoken commands, perform searches, open apps or files, speak responses, and streamline hands-free interactions.",
+          "endDate": "2025-06-30",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/PriyanshuV17/Voice_assistant.ipynb",
+          "skills": "Speech recognition & text-to-speech implementation, command parsing and action mapping, Python scripting for system control & browser automation, real-time audio processing and integration of voice modules, project structuring and modular programming with Python/Git.",
+          "startDate": "2025-06-06",
+          "title": " VOICE ASSISTANT"
+        },
+        "-OcJQdKtpfXjs_YhBr5t": {
+          "deployedLink": "https://github.com/PriyanshuV17/OCR_Implementation",
+          "description": "A project to implement Optical Character Recognition (OCR), using image-processing and OCR libraries in Python to extract text from images and convert it into editable format.",
+          "endDate": "2025-07-02",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/PriyanshuV17/OCR_Implementation",
+          "skills": "Image preprocessing & noise reduction for readability, Text extraction using OCR engines, Integration of image-to-text pipelines, Handling different input formats and text layouts, Project structuring and version control with Python/Git",
+          "startDate": "2025-07-01",
+          "title": "Optical Character Recognition"
+        },
+        "-OcJRZ79q_Hgo4Lx24Op": {
+          "deployedLink": "https://github.com/PriyanshuV17/Car_game_open_gl.py",
+          "description": "A 2D car maze game developed using Python's OpenGL library, where the objective is to navigate a car through a maze, collect coins, avoid bombs, and manage health points. The game incorporates basic physics, collision detection, and sound effects via Pygame.",
+          "endDate": "2025-10-15",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/PriyanshuV17/Car_game_open_gl.py",
+          "skills": "2D game development with OpenGL, collision detection and physics simulation, maze generation and pathfinding, health and scoring systems implementation, sound integration using Pygame, project structuring and version control with Git.",
+          "startDate": "2025-10-10",
+          "title": "2D game development"
+        },
+        "-OcJRqgUcnv0SYJAag8r": {
+          "deployedLink": "https://github.com/PriyanshuV17/Solar_system_simulation_CcpC",
+          "description": "A 3D solar system simulation developed using C++ and OpenGL, featuring accurate planetary orbits, textures, lighting, and user-controlled camera navigation.",
+          "endDate": "2024-07-30",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/PriyanshuV17/Solar_system_simulation_CcpC",
+          "skills": "3D graphics programming with OpenGL, Keplerian orbital mechanics, texture mapping and lighting in 3D environments, user input handling for camera control, project structuring and version control with Git.",
+          "startDate": "2024-06-01",
+          "title": "3D solar system simulation"
+        },
+        "-OcJSCYVGllozwZC0nsM": {
+          "deployedLink": "https://github.com/PriyanshuV17/Air_ticket_reservation.py",
+          "description": "A Python-based command-line air ticket reservation system that allows users to book flights, view available routes, and manage bookings interactively.",
+          "endDate": "2022-01-07",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/PriyanshuV17/Air_ticket_reservation.py",
+          "skills": "Command-line interface (CLI) development in Python, user input validation and error handling, data storage and retrieval for bookings, implementation of booking logic and seat management, project structuring and version control with Git.",
+          "startDate": "2022-01-05",
+          "title": "Air_ticket_reservation"
+        },
+        "-OcJSRZ3Io1Gu6sHWhjk": {
+          "deployedLink": "https://github.com/PriyanshuV17/Article-Reader.py",
+          "description": "A Python script designed to extract and summarize articles from Medium using the Newspaper3k library, enabling users to quickly grasp the content of lengthy articles.",
+          "endDate": "2024-01-10",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/PriyanshuV17/Article-Reader.py",
+          "skills": "Web scraping with Newspaper3k, text extraction and summarization, handling HTML content, integrating Python libraries for content processing, and project structuring with Git.",
+          "startDate": "2022-01-10",
+          "title": "Article-Reader"
+        },
+        "-OcJT2Re3hVO_zFPmbG4": {
+          "deployedLink": "https://priyanshuv17.github.io/CcpC_web.github.io",
+          "description": "A personal portfolio website developed using HTML, CSS, and JavaScript, showcasing projects, blogs, events, and contact information.",
+          "endDate": "",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/PriyanshuV17/CcpC_web.github.io",
+          "skills": "Web development with HTML, CSS, and JavaScript, responsive design implementation, interactive UI/UX design, project structuring and version control with Git.",
+          "startDate": "2023-06-10",
+          "title": "CcpC Old Website"
+        }
+      },
+      "socialLinks": [
+        "https://www.linkedin.com/in/priyanshuverma17/",
+        "https://github.com/PriyanshuV17",
+        "https://www.instagram.com/priyanshu.verma17"
+      ]
+    },
+    "WErfpoudJdZlIulDpm5TvyvEome2": {
+      "bio": "web design | C++ | Java | Davinci Resolve | 3D Animations",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Designer",
+      "email": "dtrixprem@gmail.com",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2FWErfpoudJdZlIulDpm5TvyvEome2?alt=media&token=2767a134-f5a6-46ac-8f22-1061751e7ce0",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Prem Kumar",
+      "phone": "9279819945"
+    },
+    "WjaIg6rrBtPFHjttuTFanKmubZP2": {
+      "bio": " Android developer, Game developer and machine learning enthusiast ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "President",
+      "email": "abhimaan.22190503002@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2FWjaIg6rrBtPFHjttuTFanKmubZP2?alt=media&token=5810dbd0-7d1e-4cce-b10f-dd997f654121",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Abhimaan Kumar",
+      "phone": "07050855141",
+      "projects": {
+        "-OD1bRTfdS0WRos8Z46W": {
+          "deployedLink": "https://huggingface.co/spaces/abhimanmandal/movieRecommend",
+          "description": "This a content based movie recommendations system. Used Streamlit for frontend. ",
+          "endDate": "",
+          "id": "-OD1bRTfdS0WRos8Z46W",
+          "isOngoing": false,
+          "repositoryLink": "",
+          "skills": "Machine Learning ",
+          "startDate": "",
+          "title": "Movie Recommendations System"
+        },
+        "-OD1cUqEjiq1cK2TVUzw": {
+          "deployedLink": "",
+          "description": "An android mobile tic tac toe game using Android Studio.",
+          "endDate": "",
+          "isOngoing": false,
+          "repositoryLink": "",
+          "skills": "Android Studio",
+          "startDate": "",
+          "title": "TicTacToe"
+        },
+        "-OD1d0F2zknjF-vB6wPt": {
+          "deployedLink": "",
+          "description": "An android meme application where user can enjoy some funny memes and they can share them with their friends and family ",
+          "endDate": "",
+          "isOngoing": false,
+          "repositoryLink": "",
+          "skills": "Android Studio, APIs call",
+          "startDate": "",
+          "title": "Meme App"
+        },
+        "-OD1dMubuo1zyemMzfZy": {
+          "deployedLink": "",
+          "description": "A simple car game where player have to save his car from being collide from other car",
+          "endDate": "",
+          "isOngoing": false,
+          "repositoryLink": "",
+          "skills": "Python with its library Pygame ",
+          "startDate": "",
+          "title": "Car Game"
+        },
+        "-OD1dlngqCwCp5JqU5KP": {
+          "deployedLink": "",
+          "description": "Game where some bird from top of the view lays down some eggs and players have to catch them with basket at bottom ",
+          "endDate": "",
+          "id": "-OD1dlngqCwCp5JqU5KP",
+          "isOngoing": false,
+          "repositoryLink": "",
+          "skills": "Python, Pygame ",
+          "startDate": "",
+          "title": "Egg Catching Game"
+        },
+        "-OD1efPU13XR850mJjpQ": {
+          "deployedLink": "",
+          "description": "An android application where user can track there health status. At current version user can check their BMI. I am working on it to add some more features in incomming version.",
+          "endDate": "",
+          "isOngoing": true,
+          "repositoryLink": "",
+          "skills": "Android Studio",
+          "startDate": "",
+          "title": "Health Mate "
+        }
+      },
+      "socialLinks": [
+        "https://www.linkedin.com/in/abhimaan-kumar",
+        "https://www.instagram.com/abhimaan_mandal/profilecard/?igsh=d3JqYW9scDMxbHA4"
+      ]
+    },
+    "ZnStO6ic3fM6MQLiI5iUBZnyyC63": {
+      "bio": "Integrated B.Tech & M.Tech | Computer Science and Engineering | Central University of Jharkhand || C++ | Cybersecurity | Cloud Computing | Arduino ||",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Student",
+      "email": "",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profile_images%2F20240414_125330%202.jpg?alt=media&token=26f68a6d-4b35-4a29-878c-221a62d9f5f3",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Wayanad, Kerala",
+      "name": "Basil Joy",
+      "phone": "9526034673",
+      "socialLinks": [
+        "https://www.linkedin.com/in/basil-joy-6b07511a7/",
+        "https://github.com/basiljoy91"
+      ]
+    },
+    "Znx0hbCu8tcrtVvd5Ut3afkprdC3": {
+      "bio": "Computer Vision | AI/ML | Java | SQL",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "diwakar.23190503026@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profile_images%2FDS_Photo-removebg-preview-fotor-bg-remover-20250831114821.png?alt=media&token=e3baa4ed-f20d-404e-abc5-453479d36206",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi , Jharkhand",
+      "name": "Diwakar Singh",
+      "phone": "9955246650",
+      "socialLinks": [
+        "https://www.linkedin.com/in/diwakar-singh-328981293/"
+      ]
+    },
+    "bAf9XIUFjJP1ksbV6XB4w6yCzBq2": {
+      "bio": "AI/ML Engineer, Data Analyst, Full Stack Developer.",
+      "colorGroup": "Stack overflowers",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "tarik.22190503033@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profile_images%2FMy_Profile_pic.jpg?alt=media&token=2d240f15-2359-4e8f-a55a-95e7e17402aa",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi 835222",
+      "name": "Md Tarik Anvar ",
+      "phone": "6201143306",
+      "socialLinks": [
+        "https://www.linkedin.com/in/tarik-anvar/",
+        "https://github.com/git-tarik",
+        "https://git-tarik.github.io/static-portfolio/"
+      ]
+    },
+    "eT5ueBBfwpWJo4jfUiftvUtuvHK2": {
+      "bio": "MERN stack developer ",
+      "colorGroup": "Hash hacker",
+      "completeProfile": true,
+      "designation": "Club member",
+      "email": "akash.22190503008@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profile_images%2FIMG_20241128_114003_027~2.jpg?alt=media&token=bbb88881-5270-488f-a19e-348ae5f18ebb",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Akash kumar",
+      "phone": "9508893402",
+      "socialLinks": [
+        "https://github.com/Akashkzp",
+        "https://www.linkedin.com/in/akash-kumar-018a41272?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+      ]
+    },
+    "g9xJ9JMy56XXJh4W1FKLXaTVdD52": {
+      "bio": "A third year cse students",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Design Executive ",
+      "email": "om.22190503038@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi, Jharkhand ",
+      "name": "OM VISHESH",
+      "phone": "9523218778"
+    },
+    "gNC7e2F5AxNa9onJDzpBmBrgYBp1": {
+      "bio": "Student ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "siya.23190503055@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2FgNC7e2F5AxNa9onJDzpBmBrgYBp1?alt=media&token=b5f0b658-2931-44fb-b4b5-fd8baac8a45c",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi , Jharkhand",
+      "name": "Siya Mandal",
+      "phone": "9162647394",
+      "socialLinks": [
+        "https://github.com/siya2910"
+      ]
+    },
+    "gslqDMVBo7d6Anf0WMLdh74ypNo2": {
+      "completeProfile": false
+    },
+    "hAubNnJQB3TGIVZ7gFALfffNyVq1": {
+      "bio": "",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "khushi.23190503037@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Khushi kumari ",
+      "phone": "6202863844"
+    },
+    "iBdQw1IaMHY2urKixNsee8R7y4D3": {
+      "bio": "Sapere Aude",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "General Secretary ",
+      "email": "aditya.22190503007@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Aditya Singh Chandel",
+      "phone": "9302708799",
+      "socialLinks": [
+        "https://www.linkedin.com/in/adityasc2004?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+      ]
+    },
+    "ipXuKuHWaqOjvMBcXk8VwKS3x4W2": {
+      "completeProfile": false
+    },
+    "jdvpw4E90qdrkZI0NPPLeFLQb872": {
+      "bio": "I design for durability, whether it's an alloy or a project ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member, CcpC , CUJ",
+      "email": "aarya.24200503001@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2Fjdvpw4E90qdrkZI0NPPLeFLQb872?alt=media&token=3b196bb0-11a6-4bb0-923d-82b40cf93e31",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Dhanbad ",
+      "name": "Aarya Jha",
+      "phone": "7209616114",
+      "socialLinks": [
+        "https://www.linkedin.com/in/aarya-jha-8499982a5?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+      ]
+    },
+    "kVmUkOjWslNz1fxXEzvD7puCLsJ2": {
+      "bio": " Designer ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "raj.akpiyush1234@gmail.com",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Piyush Raj",
+      "phone": "6207794098",
+      "socialLinks": [
+        "https://www.linkedin.com/in/piyush-raj-1baa21397?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+      ]
+    },
+    "rGNgf8YGw1gLlRbrmGIZCrs8Msm2": {
+      "bio": "Aspiring Software Engineer & Innovator",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "ujit.23190503060@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2FrGNgf8YGw1gLlRbrmGIZCrs8Msm2?alt=media&token=c19231ef-86ff-4d94-9dc4-6e3221a6e069",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Uttar Pradesh",
+      "name": "Ujit Raj Rathore",
+      "phone": "8765425899",
+      "socialLinks": [
+        "https://www.linkedin.com/in/urrathore825/",
+        "https://github.com/urrathore",
+        "https://www.instagram.com/urrathore825/#",
+        ""
+      ]
+    },
+    "rOJOSJnLGYfNd5Tyi1wiZTFCk2z1": {
+      "bio": "I am currently pursuing a bachelors degree in computer science and statistics. I am proficient in java and am currently looking into the field of  Fullstack Development in Software Engineering and their applications in the real world ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "prashant.23190503047@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2FPrashant.png?alt=media&token=ea9dc5fc-9de8-4fdf-8cfd-60438f703d40",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Uttar Pradesh",
+      "name": "Prashant",
+      "phone": "6206826132"
+    },
+    "s8ZKdaxsWPWl1hQoTDhon47uy9O2": {
+      "bio": "Always ready to learn, collaborate, and grow with fellow coders.",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Central University of Jharkhand, Ranchi",
+      "name": "Shashi Kumari Verma ",
+      "phone": "9341224745"
+    },
+    "tl7kpo2ijLP4JC7RlZAmKYyPdWA2": {
+      "bio": "3rd year students ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "CCPC Treasurer ",
+      "email": "saket.22190503052@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2Ftl7kpo2ijLP4JC7RlZAmKYyPdWA2?alt=media&token=6f492ecb-16b4-4959-b4fe-f1246df6c58b",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Manatu ",
+      "name": "Saket Tripathi ",
+      "phone": "7607938084",
+      "projects": {
+        "-OcuSCILguXvI4IGnHzo": {
+          "deployedLink": "",
+          "description": "",
+          "endDate": "",
+          "isOngoing": false,
+          "repositoryLink": "https://github.com/Tripathijii147/Stock-Price-Prediction-model-/tree/main/Dataset",
+          "skills": "Research and Data analytics along Machine Learning ",
+          "startDate": "",
+          "title": "Indian Stocks Price Movement Prediction Model "
+        }
+      }
+    },
+    "u38qyO73FTWpVq5y3bfL8dRj2sg2": {
+      "bio": "B-tech CSE student ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member ",
+      "email": "neha.22190503062@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "CUJ, Ranchi Jharkhand ",
+      "name": "Neha",
+      "phone": "9341159102"
+    },
+    "wCL4vvpVZuX9gPZLWbX7ROVxj6z1": {
+      "bio": "Passionate about emerging technologies, with strong interest in development and building innovation solutions. Always curious to explore new ideas.",
+      "colorGroup": "Greedy coders ",
+      "completeProfile": true,
+      "designation": "Member ",
+      "email": "krrish.24190503028@cuj.ac.in",
+      "imageUrl": "https://vlycbxrafcccxqyvnifb.supabase.co/storage/v1/object/public/CcpC/members_images/1757611370965-1000042260.webp",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Krrish GOSWAMI",
+      "phone": "9608594360",
+      "socialLinks": [
+        "https://github.com/prokk360",
+        "https://www.linkedin.com/in/krrish-goswami-37410a308/",
+        "https://www.instagram.com/lonewolf__clicks/"
+      ]
+    },
+    "wcYdLeaZwYXEsbRMqDTDSAqrUIX2": {
+      "bio": "Computer Science student passionate with coding,problem solving and game Development",
+      "colorGroup": "Greedy coders ",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "abhi.24190503002@cuj.ac.in",
+      "imageUrl": "",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Abhi Raj Gupta",
+      "phone": "9835637991"
+    },
+    "wfT41e7CD0OQ8C8n2sbTB3BX79H2": {
+      "bio": "Passionate about coding and problem-solving, exploring programming.",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "kundan.24190503029@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2FwfT41e7CD0OQ8C8n2sbTB3BX79H2?alt=media&token=bbe3a7e8-bb24-438f-b681-a5c8e5bb062f",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Kundan Kumar",
+      "phone": "9709376391",
+      "socialLinks": [
+        "www.linkedin.com/in/kundankumar015"
+      ]
+    },
+    "wsm6pmqWGVXe8KB05p2RKj4WzcD2": {
+      "bio": "Code. Debug. Repeat. Learning Dev and AI one bug at a time!",
+      "colorGroup": "Recursion rangers",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "raj.24190503043@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2Fwsm6pmqWGVXe8KB05p2RKj4WzcD2?alt=media&token=2f2fe5f0-6a31-48a6-9432-ba9042874725",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi",
+      "name": "Raj Vardhan Jha ",
+      "phone": "7004941673",
+      "socialLinks": [
+        "https://www.linkedin.com/in/raj-vardhan-jha-4b2235329?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+      ]
+    },
+    "wt7vH1R4BsgeqzUTafFHSzFTawr1": {
+      "bio": "CSE Student with interests in Hacking & Development, Also love content creation ",
+      "colorGroup": "Not allocated",
+      "completeProfile": true,
+      "designation": "Member",
+      "email": "dheeraj.24190503019@cuj.ac.in",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/soc-ccpc-cuj.appspot.com/o/profileImages%2Fwt7vH1R4BsgeqzUTafFHSzFTawr1?alt=media&token=b42002bb-8e8a-4703-aae4-ef49ab164cbf",
+      "isAlumni": false,
+      "isMember": true,
+      "location": "Ranchi , Jharkhand ",
+      "name": "Dheeraj Kumar",
+      "phone": "9279011567",
+      "socialLinks": [
+        "https://www.linkedin.com/in/dheeraj-bhardwaj-491205234?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+      ]
+    }
+  }
+}

@@ -17,7 +17,13 @@ from models import (
     get_voted_categories, record_vote, has_voted_in_category,
     is_election_active, toggle_election, get_election_status,
     get_results, get_total_voters,
-    CATEGORIES, CATEGORY_NAMES
+    CATEGORIES, CATEGORY_NAMES,
+    # New imports for preference-based system
+    get_all_positions, get_position, toggle_position, 
+    set_position_timeline, is_position_active, get_active_positions,
+    record_ranked_votes, has_voted_for_position, get_ranked_voted_positions,
+    compute_all_results, save_election_winners, get_election_winners,
+    get_ranked_vote_count
 )
 
 # Initialize Flask app
@@ -126,8 +132,18 @@ def admin_login():
     if request.method == 'POST':
         password = request.form.get('password', '').strip()
         
-        # Simple admin password check
-        ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+        # Admin password check - MUST be set via env var in production
+        ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
+        FLASK_ENV = os.environ.get('FLASK_ENV', 'development')
+        
+        # Security: Require ADMIN_PASSWORD env var in production
+        if not ADMIN_PASSWORD:
+            if FLASK_ENV == 'production':
+                flash('Admin password not configured. Contact system administrator.', 'danger')
+                return render_template('admin_login.html')
+            else:
+                # Only allow default in development
+                ADMIN_PASSWORD = 'admin123'
         
         if password == ADMIN_PASSWORD:
             # Get or create admin user
@@ -255,12 +271,28 @@ def admin():
     results = get_results()
     election_status = get_election_status()
     total_voters = get_total_voters()
+    ranked_voter_count = get_ranked_vote_count()
+    winners = get_election_winners()
+    
+    # Get positions with active status
+    positions = get_all_positions()
+    position_data = []
+    for pos in positions:
+        position_data.append({
+            'code': pos['position_code'],
+            'name': pos['position_name'],
+            'is_active': pos['is_active'],
+            'is_currently_active': is_position_active(pos['position_code'])
+        })
     
     return render_template(
         'admin.html',
         results=results,
         election_status=election_status,
         total_voters=total_voters,
+        ranked_voter_count=ranked_voter_count,
+        winners=winners,
+        positions=position_data,
         categories=CATEGORIES,
         category_names=CATEGORY_NAMES
     )
@@ -303,6 +335,197 @@ def admin_export():
         output.getvalue(),
         mimetype='text/csv',
         headers={'Content-Disposition': 'attachment;filename=election_results.csv'}
+    )
+
+
+# ============ POSITION MANAGEMENT ROUTES ============
+
+@app.route('/admin/positions')
+@admin_required
+def admin_positions():
+    """Admin page for managing election positions."""
+    positions = get_all_positions()
+    winners = get_election_winners()
+    ranked_voter_count = get_ranked_vote_count()
+    
+    # Build position status with active check
+    position_data = []
+    for pos in positions:
+        position_data.append({
+            'code': pos['position_code'],
+            'name': pos['position_name'],
+            'rank_order': pos['rank_order'],
+            'is_active': pos['is_active'],
+            'is_currently_active': is_position_active(pos['position_code']),
+            'opens_at': pos['opens_at'],
+            'closes_at': pos['closes_at']
+        })
+    
+    return render_template(
+        'admin_positions.html',
+        positions=position_data,
+        winners=winners,
+        ranked_voter_count=ranked_voter_count
+    )
+
+
+@app.route('/admin/positions/<position_code>/toggle', methods=['POST'])
+@admin_required
+def admin_toggle_position(position_code):
+    """Toggle a specific position's voting status."""
+    new_status = toggle_position(position_code)
+    status_text = 'opened' if new_status else 'closed'
+    flash(f'{CATEGORY_NAMES.get(position_code, position_code)} voting has been {status_text}.', 'success')
+    return redirect(url_for('admin_positions'))
+
+
+@app.route('/admin/positions/<position_code>/timeline', methods=['POST'])
+@admin_required
+def admin_set_timeline(position_code):
+    """Set timeline for a specific position."""
+    opens_at = request.form.get('opens_at', '').strip() or None
+    closes_at = request.form.get('closes_at', '').strip() or None
+    
+    set_position_timeline(position_code, opens_at, closes_at)
+    flash(f'Timeline updated for {CATEGORY_NAMES.get(position_code, position_code)}.', 'success')
+    return redirect(url_for('admin_positions'))
+
+
+@app.route('/admin/compute-results', methods=['POST'])
+@admin_required
+def admin_compute_results():
+    """Compute and save election results using preference recomputation."""
+    results = compute_all_results()
+    save_election_winners(results)
+    flash('Election results computed and saved!', 'success')
+    return redirect(url_for('admin_positions'))
+
+
+@app.route('/admin/results')
+@admin_required
+def admin_view_results():
+    """View detailed recomputed results."""
+    results = compute_all_results()
+    winners = get_election_winners()
+    ranked_voter_count = get_ranked_vote_count()
+    
+    return render_template(
+        'admin_results.html',
+        results=results,
+        winners=winners,
+        ranked_voter_count=ranked_voter_count
+    )
+
+
+# ============ RANKED VOTING ROUTES ============
+
+@app.route('/ranked-vote/<position>')
+@login_required
+def ranked_vote_page(position):
+    """Show ranked voting page for a position."""
+    if position not in CATEGORIES:
+        flash('Invalid position.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    if not is_position_active(position):
+        flash(f'Voting for {CATEGORY_NAMES[position]} is currently closed.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    user = get_user_by_id(session['user_id'])
+    voter_hash = generate_voter_hash(user['id'], app.secret_key)
+    
+    if has_voted_for_position(voter_hash, position):
+        flash('You have already voted for this position.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    candidates = get_candidates_by_category(position)
+    
+    if not candidates:
+        flash('No candidates available for this position.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    return render_template(
+        'ranked_vote.html',
+        position=position,
+        position_name=CATEGORY_NAMES[position],
+        candidates=candidates
+    )
+
+
+@app.route('/ranked-vote/<position>/submit', methods=['POST'])
+@login_required
+def submit_ranked_vote(position):
+    """Submit ranked preference votes."""
+    if position not in CATEGORIES:
+        flash('Invalid position.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    if not is_position_active(position):
+        flash(f'Voting for {CATEGORY_NAMES[position]} is currently closed.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    user = get_user_by_id(session['user_id'])
+    voter_hash = generate_voter_hash(user['id'], app.secret_key)
+    
+    if has_voted_for_position(voter_hash, position):
+        flash('You have already voted for this position.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    # Parse ranked candidates from form
+    ranked_ids_str = request.form.get('ranked_candidates', '')
+    
+    if not ranked_ids_str:
+        flash('Please rank at least one candidate.', 'danger')
+        return redirect(url_for('ranked_vote_page', position=position))
+    
+    try:
+        ranked_ids = [int(x) for x in ranked_ids_str.split(',') if x.strip()]
+    except ValueError:
+        flash('Invalid candidate selection.', 'danger')
+        return redirect(url_for('ranked_vote_page', position=position))
+    
+    if not ranked_ids:
+        flash('Please rank at least one candidate.', 'danger')
+        return redirect(url_for('ranked_vote_page', position=position))
+    
+    # Record the ranked votes
+    success, message = record_ranked_votes(voter_hash, position, ranked_ids)
+    
+    if success:
+        flash(f'Your ranked vote for {CATEGORY_NAMES[position]} has been recorded!', 'success')
+        return redirect(url_for('confirmation'))
+    else:
+        flash(message, 'danger')
+        return redirect(url_for('ranked_vote_page', position=position))
+
+
+@app.route('/ranked-dashboard')
+@login_required
+def ranked_dashboard():
+    """Dashboard for ranked preference voting."""
+    user = get_user_by_id(session['user_id'])
+    voter_hash = generate_voter_hash(user['id'], app.secret_key)
+    voted_positions = get_ranked_voted_positions(voter_hash)
+    
+    positions = get_all_positions()
+    position_status = []
+    
+    for pos in positions:
+        position_status.append({
+            'code': pos['position_code'],
+            'name': pos['position_name'],
+            'is_active': is_position_active(pos['position_code']),
+            'voted': pos['position_code'] in voted_positions,
+            'opens_at': pos['opens_at'],
+            'closes_at': pos['closes_at']
+        })
+    
+    all_voted = len(voted_positions) == len(CATEGORIES)
+    
+    return render_template(
+        'ranked_dashboard.html',
+        positions=position_status,
+        all_voted=all_voted
     )
 
 
