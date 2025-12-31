@@ -12,6 +12,7 @@ DATABASE = 'election.db'
 # ============ NOMINATION DATA (EXPLICIT ASSIGNMENTS) ============
 
 # All 16 nominees (appear in all non-VP categories)
+# All 16 nominees (appear in all non-VP categories)
 ALL_NOMINEES = [
     "Sanskar",
     "Raj Vardhan Jha",
@@ -25,7 +26,6 @@ ALL_NOMINEES = [
     "Priyanshi Chaurasia",
     "Kundan Kumar",
     "Ujit Raj Rathore",
-    "Priyanshu Verma",
     "Raj Vardhan Rathore",
     "Ashish Sahu",
     "Basil Joy",
@@ -33,11 +33,9 @@ ALL_NOMINEES = [
 
 # Vice President nominees (VP) - separate list
 VP_CANDIDATES = [
-    "Priyanshu Verma",
     "Basil Joy",
     "Apurba Das",
     "Aditya Singh Chandel",
-    "Krish Kumar",
 ]
 
 # Treasurer nominees (TREASURER) - separate list
