@@ -174,26 +174,35 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    """Voting dashboard showing all categories."""
+    """Voting dashboard showing all categories with per-position status."""
     user = get_user_by_id(session['user_id'])
     voter_hash = generate_voter_hash(user['id'], app.secret_key)
     voted_categories = get_voted_categories(voter_hash)
+    voted_positions = get_ranked_voted_positions(voter_hash)
+    
+    # Combine legacy votes and ranked votes
+    all_voted = set(voted_categories) | set(voted_positions)
     
     categories_status = []
+    any_active = False
     for cat in CATEGORIES:
+        is_active = is_position_active(cat)
+        if is_active:
+            any_active = True
         categories_status.append({
             'code': cat,
             'name': CATEGORY_NAMES[cat],
-            'voted': cat in voted_categories
+            'voted': cat in all_voted,
+            'is_active': is_active  # Per-position status
         })
     
-    all_voted = len(voted_categories) == len(CATEGORIES)
+    all_voted_complete = len(all_voted) == len(CATEGORIES)
     
     return render_template(
         'dashboard.html',
         categories=categories_status,
-        all_voted=all_voted,
-        election_active=is_election_active()
+        all_voted=all_voted_complete,
+        election_active=any_active  # True if ANY position is active
     )
 
 
