@@ -14,13 +14,13 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS candidates (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  category TEXT NOT NULL CHECK (category IN ('VP','GS','JS1','JS2','TREASURER','EXEC_TECH','EXEC_DESIGN','EXEC_PR'))
+  category TEXT NOT NULL CHECK (category IN ('VP1','VP2','GS','JS1','JS2','EXEC_TECH','EXEC_DESIGN','EXEC_PR'))
 );
 
 -- Votes table - UNIQUE constraint prevents double voting
 CREATE TABLE IF NOT EXISTS votes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  category TEXT NOT NULL CHECK (category IN ('VP','GS','JS1','JS2','TREASURER','EXEC_TECH','EXEC_DESIGN','EXEC_PR')),
+  category TEXT NOT NULL CHECK (category IN ('VP1','VP2','GS','JS1','JS2','EXEC_TECH','EXEC_DESIGN','EXEC_PR')),
   candidate_id INTEGER NOT NULL,
   voter_hash TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -54,13 +54,14 @@ CREATE TABLE IF NOT EXISTS election_positions (
 
 -- Initialize default positions
 INSERT OR IGNORE INTO election_positions (position_code, position_name, rank_order) VALUES 
-  ('VP', 'Vice President', 1),
-  ('GS', 'General Secretary', 2),
-  ('JS1', 'Joint Secretary 1', 3),
-  ('JS2', 'Joint Secretary 2', 4),
-  ('EXEC_TECH', 'Tech Executive', 5),
-  ('EXEC_DESIGN', 'Design Executive', 6),
-  ('EXEC_PR', 'PR Executive', 7);
+  ('VP1', 'Vice President 1', 1),
+  ('VP2', 'Vice President 2', 2),
+  ('GS', 'General Secretary', 3),
+  ('JS1', 'Joint Secretary 1', 4),
+  ('JS2', 'Joint Secretary 2', 5),
+  ('EXEC_TECH', 'Tech Executive', 6),
+  ('EXEC_DESIGN', 'Design Executive', 7),
+  ('EXEC_PR', 'PR Executive', 8);
 
 -- Ranked preference votes (new voting system)
 CREATE TABLE IF NOT EXISTS ranked_votes (

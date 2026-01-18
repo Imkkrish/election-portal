@@ -31,15 +31,15 @@ ALL_NOMINEES = [
     "Basil Joy",
 ]
 
-# Vice President nominees (VP) - separate list
-VP_CANDIDATES = [
+# Vice President 1 nominees (VP1) - separate list
+VP1_CANDIDATES = [
     "Basil Joy",
     "Apurba Das",
     "Aditya Singh Chandel",
 ]
 
-# Treasurer nominees (TREASURER) - separate list
-TREASURER_CANDIDATES = [
+# Vice President 2 nominees (VP2 - formerly Treasurer) - separate list
+VP2_CANDIDATES = [
     "Basil Joy",
     "Apurba Das",
     "Aditya Singh Chandel",
@@ -61,12 +61,13 @@ def seed_candidates():
     cursor = conn.cursor()
     
     # Category to candidates mapping
+    # Category to candidates mapping
     categories = {
-        'VP': VP_CANDIDATES,
+        'VP1': VP1_CANDIDATES,
+        'VP2': VP2_CANDIDATES,
         'GS': GS_CANDIDATES,
         'JS1': JS1_CANDIDATES,
         'JS2': JS2_CANDIDATES,
-        'TREASURER': TREASURER_CANDIDATES,
         'EXEC_TECH': EXEC_TECH_CANDIDATES,
         'EXEC_DESIGN': EXEC_DESIGN_CANDIDATES,
         'EXEC_PR': EXEC_PR_CANDIDATES,
@@ -97,11 +98,11 @@ def seed_candidates():
     print("\n" + "=" * 50)
     print("CANDIDATE SEEDING COMPLETE")
     print("=" * 50)
-    print(f"VP candidates inserted:          {results['VP']}")
+    print(f"VP1 candidates inserted:          {results['VP1']}")
+    print(f"VP2 candidates inserted:          {results['VP2']}")
     print(f"GS candidates inserted:          {results['GS']}")
     print(f"JS1 candidates inserted:         {results['JS1']}")
     print(f"JS2 candidates inserted:         {results['JS2']}")
-    print(f"TREASURER candidates inserted:   {results['TREASURER']}")
     print(f"EXEC_TECH candidates inserted:   {results['EXEC_TECH']}")
     print(f"EXEC_DESIGN candidates inserted: {results['EXEC_DESIGN']}")
     print(f"EXEC_PR candidates inserted:     {results['EXEC_PR']}")
