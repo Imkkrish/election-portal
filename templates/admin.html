@@ -15,6 +15,10 @@
                 <span class="stat-value">{{ ranked_voter_count }}</span>
                 <span class="stat-label">Ranked Voters</span>
             </div>
+            <a href="{{ url_for('admin_voters') }}" class="stat stat-link">
+                <span class="stat-value">👥</span>
+                <span class="stat-label">View Voters</span>
+            </a>
         </div>
     </div>
 
@@ -189,6 +193,21 @@
     .winner-votes {
         font-size: 0.75rem;
         opacity: 0.8;
+    }
+
+    .stat-link {
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+    }
+
+    .stat-link:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
     }
 </style>
 {% endblock %}

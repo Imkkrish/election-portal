@@ -651,3 +651,67 @@ def get_ranked_vote_count():
     cursor = db.execute("SELECT COUNT(DISTINCT voter_hash) as count FROM ranked_votes")
     row = cursor.fetchone()
     return row['count'] if row else 0
+
+
+# ============ VOTER PARTICIPATION TRACKING ============
+
+def log_voter_participation(user_id, position_code):
+    """Log that a user has voted for a position (for admin tracking)."""
+    db = get_db()
+    try:
+        db.execute(
+            "INSERT OR IGNORE INTO vote_log (user_id, position_code) VALUES (?, ?)",
+            (user_id, position_code)
+        )
+        db.commit()
+        return True
+    except sqlite3.Error:
+        return False
+
+
+def get_voters_list():
+    """Get list of users who have voted with their vote count."""
+    db = get_db()
+    cursor = db.execute("""
+        SELECT u.id, u.name, u.email, COUNT(DISTINCT vl.position_code) as positions_voted
+        FROM users u
+        JOIN vote_log vl ON u.id = vl.user_id
+        GROUP BY u.id
+        ORDER BY vl.voted_at DESC
+    """)
+    return cursor.fetchall()
+
+
+def get_voters_by_position(position_code):
+    """Get list of users who voted for a specific position."""
+    db = get_db()
+    cursor = db.execute("""
+        SELECT u.id, u.name, u.email, vl.voted_at
+        FROM users u
+        JOIN vote_log vl ON u.id = vl.user_id
+        WHERE vl.position_code = ?
+        ORDER BY vl.voted_at DESC
+    """, (position_code,))
+    return cursor.fetchall()
+
+
+def get_total_voter_participation():
+    """Get count of unique users who have voted in any position."""
+    db = get_db()
+    cursor = db.execute("SELECT COUNT(DISTINCT user_id) as count FROM vote_log")
+    row = cursor.fetchone()
+    return row['count'] if row else 0
+
+
+def get_non_voters():
+    """Get list of members who haven't voted yet."""
+    db = get_db()
+    cursor = db.execute("""
+        SELECT u.id, u.name, u.email
+        FROM users u
+        WHERE u.is_admin = 0 
+        AND u.id NOT IN (SELECT DISTINCT user_id FROM vote_log)
+        ORDER BY u.name
+    """)
+    return cursor.fetchall()
+

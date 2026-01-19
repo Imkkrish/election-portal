@@ -23,7 +23,9 @@ from models import (
     set_position_timeline, is_position_active, get_active_positions,
     record_ranked_votes, has_voted_for_position, get_ranked_voted_positions,
     compute_all_results, save_election_winners, get_election_winners,
-    get_ranked_vote_count
+    get_ranked_vote_count,
+    # Voter tracking imports
+    log_voter_participation, get_voters_list, get_non_voters, get_total_voter_participation
 )
 
 # Initialize Flask app
@@ -578,6 +580,28 @@ def admin_view_results():
     )
 
 
+@app.route('/admin/voters')
+@admin_required
+def admin_voters():
+    """View who has voted and who hasn't."""
+    voters = get_voters_list()
+    non_voters = get_non_voters()
+    total_participation = get_total_voter_participation()
+    
+    # Get total members (excluding admin)
+    db = get_db()
+    cursor = db.execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 0")
+    total_members = cursor.fetchone()['count']
+    
+    return render_template(
+        'admin_voters.html',
+        voters=voters,
+        non_voters=non_voters,
+        total_participation=total_participation,
+        total_members=total_members
+    )
+
+
 # ============ RANKED VOTING ROUTES ============
 
 @app.route('/ranked-vote/<position>')
@@ -653,6 +677,8 @@ def submit_ranked_vote(position):
     success, message = record_ranked_votes(voter_hash, position, ranked_ids)
     
     if success:
+        # Log voter participation for admin tracking
+        log_voter_participation(user['id'], position)
         flash(f'Your ranked vote for {CATEGORY_NAMES[position]} has been recorded!', 'success')
         return redirect(url_for('confirmation'))
     else:

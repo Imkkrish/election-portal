@@ -76,6 +76,17 @@ CREATE TABLE IF NOT EXISTS ranked_votes (
   FOREIGN KEY (candidate_id) REFERENCES candidates(id)
 );
 
+-- Vote participation log (tracks WHO voted, not WHAT they voted)
+-- This allows admin to see voter turnout while maintaining vote anonymity
+CREATE TABLE IF NOT EXISTS vote_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  position_code TEXT NOT NULL,
+  voted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, position_code),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 -- Track which candidates have been elected (for recomputation)
 CREATE TABLE IF NOT EXISTS election_winners (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
