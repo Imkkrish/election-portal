@@ -44,7 +44,25 @@ def auto_initialize():
     
     DATABASE = 'election.db'
     
-    # Check if database needs initialization
+    # First, ensure vote_log table exists (for existing databases)
+    try:
+        conn = sqlite3.connect(DATABASE)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS vote_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                position_code TEXT NOT NULL,
+                voted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, position_code),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        conn.commit()
+        conn.close()
+    except sqlite3.Error:
+        pass
+    
+    # Check if database needs full initialization
     try:
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
@@ -336,6 +354,11 @@ def legacy_dashboard():
 @election_active_required
 def vote(category):
     """Vote in a specific category."""
+    user = get_user_by_id(session['user_id'])
+    if user and user['is_admin']:
+        flash('Admins cannot participate in voting.', 'warning')
+        return redirect(url_for('admin'))
+        
     if category not in CATEGORIES:
         flash('Invalid category.', 'danger')
         return redirect(url_for('dashboard'))
@@ -608,6 +631,11 @@ def admin_voters():
 @login_required
 def ranked_vote_page(position):
     """Show ranked voting page for a position."""
+    user = get_user_by_id(session['user_id'])
+    if user and user['is_admin']:
+        flash('Admins cannot participate in voting.', 'warning')
+        return redirect(url_for('admin'))
+        
     if position not in CATEGORIES:
         flash('Invalid position.', 'danger')
         return redirect(url_for('ranked_dashboard'))
@@ -641,6 +669,11 @@ def ranked_vote_page(position):
 @login_required
 def submit_ranked_vote(position):
     """Submit ranked preference votes."""
+    user = get_user_by_id(session['user_id'])
+    if user and user['is_admin']:
+        flash('Admins cannot participate in voting.', 'warning')
+        return redirect(url_for('admin'))
+        
     if position not in CATEGORIES:
         flash('Invalid position.', 'danger')
         return redirect(url_for('ranked_dashboard'))
@@ -691,6 +724,9 @@ def submit_ranked_vote(position):
 def ranked_dashboard():
     """Dashboard for ranked preference voting."""
     user = get_user_by_id(session['user_id'])
+    if user and user['is_admin']:
+        return redirect(url_for('admin'))
+        
     voter_hash = generate_voter_hash(user['id'], app.secret_key)
     voted_positions = get_ranked_voted_positions(voter_hash)
     
