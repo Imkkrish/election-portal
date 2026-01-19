@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS candidates (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  category TEXT NOT NULL CHECK (category IN ('VP1','VP2','GS','JS1','JS2','EXEC_TECH','EXEC_DESIGN','EXEC_PR'))
+  category TEXT NOT NULL CHECK (category IN ('VP1','VP2','GS','JS1','JS2','EXEC_TECH','EXEC_DESIGN','EXEC_PR')),
+  UNIQUE(name, category)
 );
 
 -- Votes table - UNIQUE constraint prevents double voting

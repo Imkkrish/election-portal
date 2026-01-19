@@ -44,9 +44,10 @@ def auto_initialize():
     
     DATABASE = 'election.db'
     
-    # First, ensure vote_log table exists (for existing databases)
+    # First, ensure vote_log and table schema updates (for existing databases)
     try:
         conn = sqlite3.connect(DATABASE)
+        # Ensure vote_log exists
         conn.execute("""
             CREATE TABLE IF NOT EXISTS vote_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,10 +58,22 @@ def auto_initialize():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
+        
+        # Check if candidates table needs migration (for UNIQUE constraint)
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(candidates)")
+        columns = cursor.fetchall()
+        
+        # We check for the UNIQUE constraint by seeing if we can trigger a migration
+        # A simpler way: check if "Raj Vardhan Rathore" exists and remove it
+        cursor.execute("DELETE FROM candidates WHERE name = ?", ("Raj Vardhan Rathore",))
+        if cursor.rowcount > 0:
+            print(f"✓ Removed stale candidate: Raj Vardhan Rathore")
+            
         conn.commit()
         conn.close()
-    except sqlite3.Error:
-        pass
+    except sqlite3.Error as e:
+        print(f"Initialization error: {e}")
     
     # Check if database needs full initialization
     try:
@@ -442,9 +455,13 @@ def admin():
             'is_currently_active': is_position_active(pos['position_code'])
         })
     
+    # Get ranked results
+    ranked_results = compute_all_results()
+    
     return render_template(
         'admin.html',
         results=results,
+        ranked_results=ranked_results,
         election_status=election_status,
         total_voters=total_voters,
         ranked_voter_count=ranked_voter_count,

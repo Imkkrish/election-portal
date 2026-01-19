@@ -56,57 +56,94 @@
         </div>
     </div>
 
-    <!-- Results -->
+    <!-- Ranked Results & Winners -->
     <div class="admin-section">
         <div class="section-header">
-            <h2>📊 Results (Legacy Single-Choice)</h2>
+            <h2>🏆 Election Results (Ranked Voting)</h2>
+            <div class="header-actions">
+                <form method="POST" action="{{ url_for('admin_compute_results') }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-success btn-sm">🔄 Recompute Winners</button>
+                </form>
+                <a href="{{ url_for('admin_view_results') }}" class="btn btn-primary btn-sm">
+                    View Analysis →
+                </a>
+            </div>
+        </div>
+
+        {% if winners %}
+        <div class="winners-summary">
+            <h3>Current Winners</h3>
+            <div class="winners-grid">
+                {% for winner in winners %}
+                <div class="winner-card">
+                    <div class="winner-position">{{ winner['position_name'] }}</div>
+                    <div class="winner-name">{{ winner['candidate_name'] }}</div>
+                    <div class="winner-votes">{{ winner['vote_count'] }} effective votes</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="results-grid">
+            {% for res in ranked_results %}
+                <div class="result-card">
+                    <div class="card-title-row">
+                        <h3>{{ res.position_name }}</h3>
+                        <span class="voter-count">{{ res.total_voters }} voters</span>
+                    </div>
+                    <div class="result-list">
+                        {% for cand in res.results %}
+                            <div class="result-row {% if res.winner and cand.id == res.winner.id %}winner{% endif %}">
+                                <span class="result-name">{{ cand.name }}</span>
+                                <span class="result-votes">{{ cand.votes }} votes</span>
+                            </div>
+                        {% endfor %}
+                        {% if not res.results %}
+                            <p class="no-data">No votes yet</p>
+                        {% endif %}
+                    </div>
+                    {% if res.exhausted_votes > 0 %}
+                        <div class="exhausted-info">
+                            ⚠️ {{ res.exhausted_votes }} votes exhausted (all preferences excluded)
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Legacy Results -->
+    <div class="admin-section legacy-section">
+        <div class="section-header">
+            <h2 class="text-muted">📊 Legacy Results (Single-Choice)</h2>
             <a href="{{ url_for('admin_export') }}" class="btn btn-secondary btn-sm">
                 📥 Export CSV
             </a>
         </div>
+        <p class="section-note">These results are from the old single-choice system and should generally be ignored for the current election.</p>
         
         <div class="results-grid">
             {% for cat in categories %}
-                <div class="result-card">
-                    <h3>{{ category_names[cat] }}</h3>
+                <div class="result-card legacy-card">
+                    <h4>{{ category_names[cat] }}</h4>
                     <div class="result-list">
                         {% if cat in results %}
                             {% for candidate in results[cat] %}
-                                <div class="result-row {% if loop.first %}winner{% endif %}">
+                                <div class="result-row">
                                     <span class="result-name">{{ candidate.name }}</span>
                                     <span class="result-votes">{{ candidate.votes }} votes</span>
                                 </div>
                             {% endfor %}
                         {% else %}
-                            <p class="no-data">No candidates</p>
+                            <p class="no-data">No data</p>
                         {% endif %}
                     </div>
                 </div>
             {% endfor %}
         </div>
     </div>
-
-    <!-- Ranked Results -->
-    {% if winners %}
-    <div class="admin-section">
-        <div class="section-header">
-            <h2>🏆 Computed Winners (Preference-Based)</h2>
-            <a href="{{ url_for('admin_view_results') }}" class="btn btn-primary btn-sm">
-                View Full Results →
-            </a>
-        </div>
-        
-        <div class="winners-grid">
-            {% for winner in winners %}
-            <div class="winner-card">
-                <div class="winner-position">{{ winner['position_name'] }}</div>
-                <div class="winner-name">{{ winner['candidate_name'] }}</div>
-                <div class="winner-votes">{{ winner['vote_count'] }} votes</div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
 </div>
 
 <style>
@@ -164,9 +201,28 @@
         color: white;
     }
 
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .winners-summary {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .winners-summary h3 {
+        margin-bottom: 1rem;
+        color: #10b981;
+        font-size: 1.1rem;
+    }
+
     .winners-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 1rem;
     }
 
@@ -176,23 +232,72 @@
         border-radius: 12px;
         text-align: center;
         color: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     .winner-position {
         font-size: 0.75rem;
         opacity: 0.9;
         margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .winner-name {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: bold;
         margin-bottom: 0.25rem;
     }
 
     .winner-votes {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         opacity: 0.8;
+    }
+
+    .card-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .voter-count {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        background: var(--bg-secondary);
+        padding: 0.2rem 0.5rem;
+        border-radius: 20px;
+    }
+
+    .exhausted-info {
+        margin-top: 1rem;
+        font-size: 0.75rem;
+        color: #f59e0b;
+        padding-top: 0.5rem;
+        border-top: 1px dashed var(--border);
+    }
+
+    .legacy-section {
+        margin-top: 4rem;
+        opacity: 0.7;
+        border-top: 2px solid var(--border);
+        padding-top: 2rem;
+    }
+
+    .section-note {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+    }
+
+    .legacy-card {
+        background: var(--bg-secondary);
+    }
+
+    .legacy-card h4 {
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+        color: var(--text-muted);
     }
 
     .stat-link {

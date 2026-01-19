@@ -26,7 +26,6 @@ ALL_NOMINEES = [
     "Priyanshi Chaurasia",
     "Kundan Kumar",
     "Ujit Raj Rathore",
-    "Raj Vardhan Rathore",
     "Ashish Sahu",
     "Basil Joy",
 ]
