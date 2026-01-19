@@ -726,10 +726,24 @@ def submit_ranked_vote(position):
     # Record the ranked votes
     success, message = record_ranked_votes(voter_hash, position, ranked_ids)
     
+    
     if success:
         # Log voter participation for admin tracking
         log_voter_participation(user['id'], position)
         flash(f'Your ranked vote for {CATEGORY_NAMES[position]} has been recorded!', 'success')
+        
+        # SEQUENTIAL VOTING FLOW:
+        # Find next category to vote for
+        try:
+            current_index = CATEGORIES.index(position)
+            if current_index < len(CATEGORIES) - 1:
+                next_position = CATEGORIES[current_index + 1]
+                # Redirect to next position
+                return redirect(url_for('ranked_vote_page', position=next_position))
+        except ValueError:
+            pass # Should not happen if position is valid
+            
+        # If last category or error, go to confirmation
         return redirect(url_for('confirmation'))
     else:
         flash(message, 'danger')
