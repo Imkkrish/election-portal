@@ -480,7 +480,7 @@ def get_ranked_voted_positions(voter_hash):
 
 # ============ RECOMPUTATION ALGORITHM ============
 
-def compute_position_winner(position_code, excluded_candidate_ids=None):
+def compute_position_winner(position_code, excluded_names=None):
     """
     Compute the winner for a position using preference recomputation.
     
@@ -492,13 +492,13 @@ def compute_position_winner(position_code, excluded_candidate_ids=None):
     
     Args:
         position_code: The position to compute winner for
-        excluded_candidate_ids: Set of candidate IDs already elected to higher posts
+        excluded_names: Set of candidate names already elected to higher posts
     
     Returns:
         dict with 'winner' (candidate info) and 'results' (all candidates with counts)
     """
-    if excluded_candidate_ids is None:
-        excluded_candidate_ids = set()
+    if excluded_names is None:
+        excluded_names = set()
     
     db = get_db()
     
@@ -508,6 +508,10 @@ def compute_position_winner(position_code, excluded_candidate_ids=None):
         (position_code,)
     )
     voters = [row['voter_hash'] for row in cursor.fetchall()]
+    
+    # Map candidate IDs to names to check exclusions
+    cursor = db.execute("SELECT id, name FROM candidates WHERE category = ?", (position_code,))
+    id_to_name = {row['id']: row['name'] for row in cursor.fetchall()}
     
     # Count effective first-preference votes
     vote_counts = {}  # candidate_id -> count
@@ -524,7 +528,8 @@ def compute_position_winner(position_code, excluded_candidate_ids=None):
         
         # Find first non-excluded candidate
         for cand_id in preferences:
-            if cand_id not in excluded_candidate_ids:
+            cand_name = id_to_name.get(cand_id)
+            if cand_name and cand_name not in excluded_names:
                 vote_counts[cand_id] = vote_counts.get(cand_id, 0) + 1
                 break
         # If all preferences are excluded, this voter's vote is exhausted
@@ -542,24 +547,20 @@ def compute_position_winner(position_code, excluded_candidate_ids=None):
             })
     
     # Add candidates with zero votes (not in any voter's top choice after exclusions)
-    cursor = db.execute(
-        "SELECT id, name FROM candidates WHERE category = ?",
-        (position_code,)
-    )
-    all_candidates = cursor.fetchall()
     existing_ids = {r['id'] for r in results}
-    for cand in all_candidates:
-        if cand['id'] not in existing_ids and cand['id'] not in excluded_candidate_ids:
+    for cand_id, cand_name in id_to_name.items():
+        if cand_id not in existing_ids and cand_name not in excluded_names:
             results.append({
-                'id': cand['id'],
-                'name': cand['name'],
+                'id': cand_id,
+                'name': cand_name,
                 'votes': 0
             })
     
     # Sort by votes descending
     results.sort(key=lambda x: x['votes'], reverse=True)
     
-    winner = results[0] if results else None
+    # Only declare a winner if they have at least one vote
+    winner = results[0] if results and results[0]['votes'] > 0 else None
     
     return {
         'position_code': position_code,
@@ -591,18 +592,18 @@ def compute_all_results():
     )
     positions = cursor.fetchall()
     
-    excluded_candidates = set()
+    excluded_names = set()
     all_results = []
     
     for pos in positions:
         position_code = pos['position_code']
         
-        result = compute_position_winner(position_code, excluded_candidates)
+        result = compute_position_winner(position_code, excluded_names)
         result['position_name'] = pos['position_name']
         
-        # Add winner to exclusion set for subsequent positions
+        # Add winner's name to exclusion set for subsequent positions
         if result['winner']:
-            excluded_candidates.add(result['winner']['id'])
+            excluded_names.add(result['winner']['name'])
         
         all_results.append(result)
     
