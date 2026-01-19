@@ -23,3 +23,6 @@ __pycache__/
 
 # OS files
 .DS_Store
+
+# Azure
+*.PublishSettings
