@@ -42,7 +42,7 @@ def auto_initialize():
     import sqlite3
     import json
     
-    DATABASE = 'election.db'
+    DATABASE = os.environ.get('DATABASE_PATH', 'election.db')
     
     # First, ensure vote_log and table schema updates (for existing databases)
     try:

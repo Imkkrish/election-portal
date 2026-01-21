@@ -9,7 +9,9 @@ import hashlib
 import re
 from flask import g
 
-DATABASE = 'election.db'
+import os
+
+DATABASE = os.environ.get('DATABASE_PATH', 'election.db')
 
 # Valid voting categories
 CATEGORIES = ['VP1', 'VP2', 'GS', 'JS1', 'JS2', 'EXEC_TECH', 'EXEC_DESIGN', 'EXEC_PR']
