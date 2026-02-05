@@ -803,10 +803,11 @@ def get_voters_list():
         SELECT u.id, u.name, u.email, COUNT(DISTINCT vl.position_code) as positions_voted
         FROM users u
         JOIN vote_log vl ON u.id = vl.user_id
-        GROUP BY u.id
-        ORDER BY vl.voted_at DESC
+        GROUP BY u.id, u.name, u.email
+        ORDER BY MAX(vl.voted_at) DESC
     """)
     return cursor.fetchall()
+
 
 
 def get_voters_by_position(position_code):
