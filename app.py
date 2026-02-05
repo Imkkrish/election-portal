@@ -11,7 +11,7 @@ from flask_wtf.csrf import CSRFProtect
 
 import models
 from models import (
-    get_db, close_db, init_db,
+    get_db, close_db, init_db, db_execute,
     get_user_by_email, get_user_by_id, authenticate_member,
     get_candidates_by_category, generate_voter_hash,
     get_voted_categories, record_vote, has_voted_in_category,
@@ -506,7 +506,7 @@ def admin_voters():
     
     # Get total members (excluding admin)
     db = get_db()
-    cursor = db.execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 0")
+    cursor = db_execute("SELECT COUNT(*) as count FROM users WHERE is_admin = FALSE")
     total_members = cursor.fetchone()['count']
     
     return render_template(

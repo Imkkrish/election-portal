@@ -157,7 +157,7 @@ def auto_initialize_data(app):
     # Seed members from Firebase
     FIREBASE_EXPORT = 'soc-ccpc-cuj-default-rtdb-export.json'
     if os.path.exists(FIREBASE_EXPORT):
-        cursor = db_execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 0")
+        cursor = db_execute("SELECT COUNT(*) as count FROM users WHERE is_admin = FALSE")
         if cursor.fetchone()['count'] == 0:
             with open(FIREBASE_EXPORT, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -837,9 +837,10 @@ def get_non_voters():
     cursor = db_execute("""
         SELECT u.id, u.name, u.email
         FROM users u
-        WHERE u.is_admin = 0 
+        WHERE u.is_admin = FALSE 
         AND u.id NOT IN (SELECT DISTINCT user_id FROM vote_log)
         ORDER BY u.name
     """)
     return cursor.fetchall()
+
 
