@@ -28,6 +28,7 @@ ALL_NOMINEES = [
     "Ujit Raj Rathore",
     "Ashish Sahu",
     "Basil Joy",
+    "Hemant Prakash",
 ]
 
 # Vice President 1 nominees (VP1) - separate list

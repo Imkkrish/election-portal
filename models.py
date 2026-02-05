@@ -7,11 +7,26 @@ Passwordless authentication via email + CCPC profile URL.
 import sqlite3
 import hashlib
 import re
+import os
 from flask import g
 
-import os
+# Try to import psycopg2 for PostgreSQL support
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    HAS_PSYCOPG2 = True
+except ImportError:
+    HAS_PSYCOPG2 = False
 
-DATABASE = os.environ.get('DATABASE_PATH', 'election.db')
+DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_PATH = os.environ.get('DATABASE_PATH', 'election.db')
+
+if DATABASE_URL and HAS_PSYCOPG2:
+    DB_TYPE = 'postgres'
+    PLACEHOLDER = '%s'
+else:
+    DB_TYPE = 'sqlite'
+    PLACEHOLDER = '?'
 
 # Valid voting categories
 CATEGORIES = ['VP1', 'VP2', 'GS', 'JS1', 'JS2', 'EXEC_TECH', 'EXEC_DESIGN', 'EXEC_PR']
@@ -31,9 +46,53 @@ CATEGORY_NAMES = {
 def get_db():
     """Get database connection, creating one if needed."""
     if 'db' not in g:
-        g.db = sqlite3.connect(DATABASE)
-        g.db.row_factory = sqlite3.Row
+        if DB_TYPE == 'postgres':
+            # For PostgreSQL, use psycopg2
+            try:
+                g.db = psycopg2.connect(DATABASE_URL)
+                g.db.autocommit = True  # Enable autocommit for Postgres
+            except Exception as e:
+                print(f"Error connecting to PostgreSQL: {e}")
+                raise
+        else:
+            # For SQLite, use sqlite3
+            g.db = sqlite3.connect(DATABASE_PATH)
+            g.db.row_factory = sqlite3.Row
     return g.db
+
+
+def db_execute(query, params=None):
+    """Abstraction for executing queries on both SQLite and Postgres."""
+    db = get_db()
+    
+    # Replace ? with %s if using Postgres
+    processed_query = query
+    if DB_TYPE == 'postgres':
+        processed_query = query.replace('?', '%s')
+        # Translate SQLite-specific syntax to Postgres
+        if 'INSERT OR IGNORE INTO vote_log' in processed_query:
+            processed_query = processed_query.replace('INSERT OR IGNORE INTO vote_log', 'INSERT INTO vote_log')
+            processed_query += ' ON CONFLICT (user_id, position_code) DO NOTHING'
+        elif 'INSERT OR IGNORE INTO election_config' in processed_query:
+            processed_query = processed_query.replace('INSERT OR IGNORE INTO election_config', 'INSERT INTO election_config')
+            processed_query += ' ON CONFLICT (id) DO NOTHING'
+        elif 'INSERT OR IGNORE INTO election_positions' in processed_query:
+             processed_query = processed_query.replace('INSERT OR IGNORE INTO election_positions', 'INSERT INTO election_positions')
+             processed_query += ' ON CONFLICT (position_code) DO NOTHING'
+        elif 'INSERT OR IGNORE' in processed_query:
+            processed_query = processed_query.replace('INSERT OR IGNORE', 'INSERT')
+            if 'users' in processed_query:
+                processed_query += ' ON CONFLICT (email) DO NOTHING'
+            elif 'candidates' in processed_query:
+                processed_query += ' ON CONFLICT (name, category) DO NOTHING'
+
+    if DB_TYPE == 'postgres':
+        # Create a cursor that returns dict-like objects
+        cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute(processed_query, params or ())
+        return cursor
+    else:
+        return db.execute(processed_query, params or ())
 
 
 def close_db(e=None):
@@ -43,18 +102,83 @@ def close_db(e=None):
         db.close()
 
 
+def translate_schema_to_postgres(schema_sql):
+    """Converts SQLite schema to PostgreSQL compatible SQL."""
+    # Replace AUTOINCREMENT (SQLite) with SERIAL (Postgres)
+    schema_sql = schema_sql.replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
+    # Remove SQLite-specific UNIQUE constraints formatting if needed
+    # Remove COMMENT lines or other SQLite specifics if any
+    return schema_sql
+
+
 def init_db(app):
     """Initialize database from schema.sql."""
     with app.app_context():
         db = get_db()
         with app.open_resource('schema.sql', mode='r') as f:
-            db.executescript(f.read())
+            schema_script = f.read()
+            
+            if DB_TYPE == 'postgres':
+                schema_script = translate_schema_to_postgres(schema_script)
+                # PostgreSQL doesn't support executescript easily, so we run blocks
+                cursor = db.cursor()
+                cursor.execute(schema_script)
+                cursor.close()
+            else:
+                db.executescript(schema_script)
+        
         db.commit()
+
+
+def auto_initialize_data(app):
+    """Data seeding and maintenance logic, DB agnostic."""
+    import json
+    
+    # Ensure admin user
+    db_execute(
+        "INSERT OR IGNORE INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)",
+        ('Admin', 'admin@club.com', 'ADMIN', True)
+    )
+    
+    # Check if we should seed candidates
+    cursor = db_execute("SELECT COUNT(*) as count FROM candidates")
+    count = cursor.fetchone()['count']
+    if count == 0:
+        from seed_candidates import VP1_CANDIDATES, VP2_CANDIDATES, ALL_NOMINEES
+        categories = {
+            'VP1': VP1_CANDIDATES, 'VP2': VP2_CANDIDATES, 'GS': ALL_NOMINEES,
+            'JS1': ALL_NOMINEES, 'JS2': ALL_NOMINEES, 'EXEC_TECH': ALL_NOMINEES,
+            'EXEC_DESIGN': ALL_NOMINEES, 'EXEC_PR': ALL_NOMINEES,
+        }
+        for category, candidates in categories.items():
+            for name in candidates:
+                db_execute("INSERT OR IGNORE INTO candidates (name, category) VALUES (?, ?)", (name, category))
+    
+    # Seed members from Firebase
+    FIREBASE_EXPORT = 'soc-ccpc-cuj-default-rtdb-export.json'
+    if os.path.exists(FIREBASE_EXPORT):
+        cursor = db_execute("SELECT COUNT(*) as count FROM users WHERE is_admin = 0")
+        if cursor.fetchone()['count'] == 0:
+            with open(FIREBASE_EXPORT, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            users = data.get('users', {})
+            for profile_id, user_data in users.items():
+                if user_data.get('completeProfile') and user_data.get('isMember'):
+                    name = user_data.get('name', '').strip()
+                    email = user_data.get('email', '').strip().lower()
+                    if name and email:
+                        db_execute("INSERT OR IGNORE INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)", (name, email, profile_id, False))
+            # Manually specified
+            db_execute("INSERT OR IGNORE INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)", ('Basil Joy', 'basil.23190503023@cuj.ac.in', 'ZnStO6ic3fM6MQLiI5iUBZnyyC63', False))
+            db_execute("INSERT OR IGNORE INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)", ('Shashi Kumari Verma', 'shashi.24190503050@cuj.ac.in', 's8ZKdaxsWPWl1hQoTDhon47uy9O2', False))
+    
+    if DB_TYPE == 'sqlite':
+        get_db().commit()
         
         # Create default admin if not exists
-        cursor = db.execute("SELECT id FROM users WHERE email = ?", ('admin@club.com',))
+        cursor = db_execute("SELECT id FROM users WHERE email = ?", ('admin@club.com',))
         if cursor.fetchone() is None:
-            db.execute(
+            db_execute(
                 "INSERT INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)",
                 ('Admin', 'admin@club.com', 'ADMIN', True)
             )
@@ -93,14 +217,14 @@ def extract_ccpc_profile_id(ccpc_url):
 def get_user_by_email(email):
     """Fetch user by email."""
     db = get_db()
-    cursor = db.execute("SELECT * FROM users WHERE email = ?", (email.lower().strip(),))
+    cursor = db_execute("SELECT * FROM users WHERE email = ?", (email.lower().strip(),))
     return cursor.fetchone()
 
 
 def get_user_by_id(user_id):
     """Fetch user by ID."""
     db = get_db()
-    cursor = db.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    cursor = db_execute("SELECT * FROM users WHERE id = ?", (user_id,))
     return cursor.fetchone()
 
 
@@ -119,7 +243,7 @@ def authenticate_member(email, ccpc_url):
         return None
     
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT * FROM users WHERE email = ? AND ccpc_profile_id = ?",
         (email, profile_id)
     )
@@ -130,7 +254,7 @@ def create_member(name, email, ccpc_profile_id, is_admin=False):
     """Create a new member."""
     db = get_db()
     try:
-        db.execute(
+        db_execute(
             "INSERT INTO users (name, email, ccpc_profile_id, is_admin) VALUES (?, ?, ?, ?)",
             (name, email.lower().strip(), ccpc_profile_id, is_admin)
         )
@@ -145,7 +269,7 @@ def create_member(name, email, ccpc_profile_id, is_admin=False):
 def get_candidates_by_category(category):
     """Get all candidates for a specific category."""
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT * FROM candidates WHERE category = ? ORDER BY name",
         (category,)
     )
@@ -155,7 +279,7 @@ def get_candidates_by_category(category):
 def get_all_candidates():
     """Get all candidates grouped by category."""
     db = get_db()
-    cursor = db.execute("SELECT * FROM candidates ORDER BY category, name")
+    cursor = db_execute("SELECT * FROM candidates ORDER BY category, name")
     return cursor.fetchall()
 
 
@@ -164,7 +288,7 @@ def add_candidate(name, category):
     if category not in CATEGORIES:
         return False
     db = get_db()
-    db.execute(
+    db_execute(
         "INSERT INTO candidates (name, category) VALUES (?, ?)",
         (name, category)
     )
@@ -182,7 +306,7 @@ def generate_voter_hash(user_id, secret_key):
 def get_voted_categories(voter_hash):
     """Get list of categories user has already voted in."""
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT category FROM votes WHERE voter_hash = ?",
         (voter_hash,)
     )
@@ -200,7 +324,7 @@ def record_vote(category, candidate_id, voter_hash):
     db = get_db()
     
     # Verify candidate exists and belongs to category
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT id FROM candidates WHERE id = ? AND category = ?",
         (candidate_id, category)
     )
@@ -208,7 +332,7 @@ def record_vote(category, candidate_id, voter_hash):
         return False, "Invalid candidate"
     
     try:
-        db.execute(
+        db_execute(
             "INSERT INTO votes (category, candidate_id, voter_hash) VALUES (?, ?, ?)",
             (category, candidate_id, voter_hash)
         )
@@ -221,7 +345,7 @@ def record_vote(category, candidate_id, voter_hash):
 def has_voted_in_category(voter_hash, category):
     """Check if user has voted in a specific category."""
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT id FROM votes WHERE voter_hash = ? AND category = ?",
         (voter_hash, category)
     )
@@ -233,7 +357,7 @@ def has_voted_in_category(voter_hash, category):
 def is_election_active():
     """Check if election is currently active."""
     db = get_db()
-    cursor = db.execute("SELECT is_active FROM election_config WHERE id = 1")
+    cursor = db_execute("SELECT is_active FROM election_config WHERE id = 1")
     row = cursor.fetchone()
     return row['is_active'] if row else False
 
@@ -241,19 +365,19 @@ def is_election_active():
 def toggle_election():
     """Toggle election status. Returns new status."""
     db = get_db()
-    cursor = db.execute("SELECT is_active FROM election_config WHERE id = 1")
+    cursor = db_execute("SELECT is_active FROM election_config WHERE id = 1")
     row = cursor.fetchone()
     
     if row:
         new_status = not row['is_active']
         timestamp_field = 'started_at' if new_status else 'ended_at'
-        db.execute(
+        db_execute(
             f"UPDATE election_config SET is_active = ?, {timestamp_field} = CURRENT_TIMESTAMP WHERE id = 1",
             (new_status,)
         )
     else:
         new_status = True
-        db.execute(
+        db_execute(
             "INSERT INTO election_config (id, is_active, started_at) VALUES (1, TRUE, CURRENT_TIMESTAMP)"
         )
     
@@ -264,7 +388,7 @@ def toggle_election():
 def get_election_status():
     """Get election configuration."""
     db = get_db()
-    cursor = db.execute("SELECT * FROM election_config WHERE id = 1")
+    cursor = db_execute("SELECT * FROM election_config WHERE id = 1")
     return cursor.fetchone()
 
 
@@ -273,7 +397,7 @@ def get_election_status():
 def get_results():
     """Get vote counts per candidate, grouped by category."""
     db = get_db()
-    cursor = db.execute("""
+    cursor = db_execute("""
         SELECT 
             c.category,
             c.name as candidate_name,
@@ -302,7 +426,7 @@ def get_results():
 def get_total_voters():
     """Get count of unique voters."""
     db = get_db()
-    cursor = db.execute("SELECT COUNT(DISTINCT voter_hash) as count FROM votes")
+    cursor = db_execute("SELECT COUNT(DISTINCT voter_hash) as count FROM votes")
     row = cursor.fetchone()
     return row['count'] if row else 0
 
@@ -312,7 +436,7 @@ def get_total_voters():
 def get_all_positions():
     """Get all election positions with their status."""
     db = get_db()
-    cursor = db.execute("""
+    cursor = db_execute("""
         SELECT * FROM election_positions 
         ORDER BY rank_order
     """)
@@ -322,7 +446,7 @@ def get_all_positions():
 def get_position(position_code):
     """Get a specific position by code."""
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT * FROM election_positions WHERE position_code = ?",
         (position_code,)
     )
@@ -332,7 +456,7 @@ def get_position(position_code):
 def toggle_position(position_code):
     """Toggle a position's active status. Returns new status."""
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT is_active FROM election_positions WHERE position_code = ?",
         (position_code,)
     )
@@ -340,7 +464,7 @@ def toggle_position(position_code):
     
     if row:
         new_status = not row['is_active']
-        db.execute(
+        db_execute(
             "UPDATE election_positions SET is_active = ? WHERE position_code = ?",
             (new_status, position_code)
         )
@@ -352,7 +476,7 @@ def toggle_position(position_code):
 def set_position_timeline(position_code, opens_at, closes_at):
     """Set opens_at and closes_at for a position."""
     db = get_db()
-    db.execute(
+    db_execute(
         """UPDATE election_positions 
            SET opens_at = ?, closes_at = ? 
            WHERE position_code = ?""",
@@ -366,7 +490,7 @@ def is_position_active(position_code):
     """Check if a specific position's voting is currently active."""
     from datetime import datetime
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT is_active, opens_at, closes_at FROM election_positions WHERE position_code = ?",
         (position_code,)
     )
@@ -415,7 +539,7 @@ def record_ranked_votes(voter_hash, position_code, ranked_candidate_ids):
     db = get_db()
     
     # Check if already voted for this position
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT id FROM ranked_votes WHERE voter_hash = ? AND position_code = ?",
         (voter_hash, position_code)
     )
@@ -424,7 +548,7 @@ def record_ranked_votes(voter_hash, position_code, ranked_candidate_ids):
     
     # Validate all candidate IDs belong to this position
     for cand_id in ranked_candidate_ids:
-        cursor = db.execute(
+        cursor = db_execute(
             "SELECT id FROM candidates WHERE id = ? AND category = ?",
             (cand_id, position_code)
         )
@@ -434,7 +558,7 @@ def record_ranked_votes(voter_hash, position_code, ranked_candidate_ids):
     # Insert ranked votes
     try:
         for rank, cand_id in enumerate(ranked_candidate_ids, start=1):
-            db.execute(
+            db_execute(
                 """INSERT INTO ranked_votes 
                    (voter_hash, position_code, candidate_id, preference_rank) 
                    VALUES (?, ?, ?, ?)""",
@@ -449,7 +573,7 @@ def record_ranked_votes(voter_hash, position_code, ranked_candidate_ids):
 def has_voted_for_position(voter_hash, position_code):
     """Check if voter has submitted ranked votes for a position."""
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT id FROM ranked_votes WHERE voter_hash = ? AND position_code = ? LIMIT 1",
         (voter_hash, position_code)
     )
@@ -459,7 +583,7 @@ def has_voted_for_position(voter_hash, position_code):
 def get_voter_preferences(voter_hash, position_code):
     """Get a voter's ranked preferences for a position."""
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         """SELECT c.id, c.name, rv.preference_rank
            FROM ranked_votes rv
            JOIN candidates c ON rv.candidate_id = c.id
@@ -473,7 +597,7 @@ def get_voter_preferences(voter_hash, position_code):
 def get_ranked_voted_positions(voter_hash):
     """Get list of positions voter has submitted ranked votes for."""
     db = get_db()
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT DISTINCT position_code FROM ranked_votes WHERE voter_hash = ?",
         (voter_hash,)
     )
@@ -505,14 +629,14 @@ def compute_position_winner(position_code, excluded_names=None):
     db = get_db()
     
     # Get all unique voters for this position
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT DISTINCT voter_hash FROM ranked_votes WHERE position_code = ?",
         (position_code,)
     )
     voters = [row['voter_hash'] for row in cursor.fetchall()]
     
     # Map candidate IDs to names to check exclusions
-    cursor = db.execute("SELECT id, name FROM candidates WHERE category = ?", (position_code,))
+    cursor = db_execute("SELECT id, name FROM candidates WHERE category = ?", (position_code,))
     id_to_name = {row['id']: row['name'] for row in cursor.fetchall()}
     
     # Count effective first-preference votes
@@ -520,7 +644,7 @@ def compute_position_winner(position_code, excluded_names=None):
     
     for voter_hash in voters:
         # Get this voter's preferences in order
-        cursor = db.execute(
+        cursor = db_execute(
             """SELECT candidate_id FROM ranked_votes 
                WHERE voter_hash = ? AND position_code = ?
                ORDER BY preference_rank""",
@@ -539,7 +663,7 @@ def compute_position_winner(position_code, excluded_names=None):
     # Get candidate details and build results
     results = []
     for cand_id, count in vote_counts.items():
-        cursor = db.execute("SELECT id, name FROM candidates WHERE id = ?", (cand_id,))
+        cursor = db_execute("SELECT id, name FROM candidates WHERE id = ?", (cand_id,))
         cand = cursor.fetchone()
         if cand:
             results.append({
@@ -589,7 +713,7 @@ def compute_all_results():
     db = get_db()
     
     # Get positions in hierarchical order
-    cursor = db.execute(
+    cursor = db_execute(
         "SELECT position_code, position_name FROM election_positions ORDER BY rank_order"
     )
     positions = cursor.fetchall()
@@ -620,12 +744,12 @@ def save_election_winners(results):
     db = get_db()
     
     # Clear existing winners
-    db.execute("DELETE FROM election_winners")
+    db_execute("DELETE FROM election_winners")
     
     # Save new winners
     for result in results:
         if result['winner']:
-            db.execute(
+            db_execute(
                 """INSERT INTO election_winners 
                    (position_code, candidate_id, candidate_name, vote_count)
                    VALUES (?, ?, ?, ?)""",
@@ -639,7 +763,7 @@ def save_election_winners(results):
 def get_election_winners():
     """Get saved election winners."""
     db = get_db()
-    cursor = db.execute("""
+    cursor = db_execute("""
         SELECT ew.*, ep.position_name, ep.rank_order
         FROM election_winners ew
         JOIN election_positions ep ON ew.position_code = ep.position_code
@@ -651,7 +775,7 @@ def get_election_winners():
 def get_ranked_vote_count():
     """Get count of unique voters who have submitted ranked votes."""
     db = get_db()
-    cursor = db.execute("SELECT COUNT(DISTINCT voter_hash) as count FROM ranked_votes")
+    cursor = db_execute("SELECT COUNT(DISTINCT voter_hash) as count FROM ranked_votes")
     row = cursor.fetchone()
     return row['count'] if row else 0
 
@@ -662,7 +786,7 @@ def log_voter_participation(user_id, position_code):
     """Log that a user has voted for a position (for admin tracking)."""
     db = get_db()
     try:
-        db.execute(
+        db_execute(
             "INSERT OR IGNORE INTO vote_log (user_id, position_code) VALUES (?, ?)",
             (user_id, position_code)
         )
@@ -675,7 +799,7 @@ def log_voter_participation(user_id, position_code):
 def get_voters_list():
     """Get list of users who have voted with their vote count."""
     db = get_db()
-    cursor = db.execute("""
+    cursor = db_execute("""
         SELECT u.id, u.name, u.email, COUNT(DISTINCT vl.position_code) as positions_voted
         FROM users u
         JOIN vote_log vl ON u.id = vl.user_id
@@ -688,7 +812,7 @@ def get_voters_list():
 def get_voters_by_position(position_code):
     """Get list of users who voted for a specific position."""
     db = get_db()
-    cursor = db.execute("""
+    cursor = db_execute("""
         SELECT u.id, u.name, u.email, vl.voted_at
         FROM users u
         JOIN vote_log vl ON u.id = vl.user_id
@@ -701,7 +825,7 @@ def get_voters_by_position(position_code):
 def get_total_voter_participation():
     """Get count of unique users who have voted in any position."""
     db = get_db()
-    cursor = db.execute("SELECT COUNT(DISTINCT user_id) as count FROM vote_log")
+    cursor = db_execute("SELECT COUNT(DISTINCT user_id) as count FROM vote_log")
     row = cursor.fetchone()
     return row['count'] if row else 0
 
@@ -709,7 +833,7 @@ def get_total_voter_participation():
 def get_non_voters():
     """Get list of members who haven't voted yet."""
     db = get_db()
-    cursor = db.execute("""
+    cursor = db_execute("""
         SELECT u.id, u.name, u.email
         FROM users u
         WHERE u.is_admin = 0 
