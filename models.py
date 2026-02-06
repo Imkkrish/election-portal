@@ -104,10 +104,31 @@ def close_db(e=None):
 
 def translate_schema_to_postgres(schema_sql):
     """Converts SQLite schema to PostgreSQL compatible SQL."""
+    import re
+    
     # Replace AUTOINCREMENT (SQLite) with SERIAL (Postgres)
     schema_sql = schema_sql.replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
-    # Remove SQLite-specific UNIQUE constraints formatting if needed
-    # Remove COMMENT lines or other SQLite specifics if any
+    
+    # Convert INSERT OR IGNORE INTO election_config to ON CONFLICT DO NOTHING
+    schema_sql = re.sub(
+        r'INSERT OR IGNORE INTO election_config \(id, is_active\) VALUES \(1, FALSE\);',
+        'INSERT INTO election_config (id, is_active) VALUES (1, FALSE) ON CONFLICT (id) DO NOTHING;',
+        schema_sql
+    )
+    
+    # Convert INSERT OR IGNORE INTO election_positions to ON CONFLICT DO NOTHING
+    schema_sql = re.sub(
+        r'INSERT OR IGNORE INTO election_positions',
+        'INSERT INTO election_positions',
+        schema_sql
+    )
+    # Add ON CONFLICT clause after the VALUES list for election_positions
+    schema_sql = re.sub(
+        r"(\('EXEC_PR', 'PR Executive', 8\));?",
+        r"\1 ON CONFLICT (position_code) DO NOTHING;",
+        schema_sql
+    )
+    
     return schema_sql
 
 
@@ -611,7 +632,7 @@ def compute_position_winner(position_code, excluded_names=None):
     Compute the winner for a position using preference recomputation.
     
     Algorithm:
-    1. Get all ranked votes for this position
+    1. Get all ranked votes for this position in a single query
     2. For each voter, find their highest-ranked candidate NOT in excluded list
     3. Count these "effective first-preference" votes
     4. Return candidate with most votes
@@ -628,30 +649,34 @@ def compute_position_winner(position_code, excluded_names=None):
     
     db = get_db()
     
-    # Get all unique voters for this position
-    cursor = db_execute(
-        "SELECT DISTINCT voter_hash FROM ranked_votes WHERE position_code = ?",
-        (position_code,)
-    )
-    voters = [row['voter_hash'] for row in cursor.fetchall()]
-    
     # Map candidate IDs to names to check exclusions
     cursor = db_execute("SELECT id, name FROM candidates WHERE category = ?", (position_code,))
     id_to_name = {row['id']: row['name'] for row in cursor.fetchall()}
     
+    # Get ALL ranked votes for this position in a single query (optimized)
+    cursor = db_execute(
+        """SELECT voter_hash, candidate_id, preference_rank 
+           FROM ranked_votes 
+           WHERE position_code = ?
+           ORDER BY voter_hash, preference_rank""",
+        (position_code,)
+    )
+    all_votes = cursor.fetchall()
+    
+    # Group votes by voter in Python (faster than N separate queries)
+    voter_preferences = {}  # voter_hash -> [(candidate_id, rank), ...]
+    for row in all_votes:
+        voter_hash = row['voter_hash']
+        if voter_hash not in voter_preferences:
+            voter_preferences[voter_hash] = []
+        voter_preferences[voter_hash].append(row['candidate_id'])
+    
+    voters = list(voter_preferences.keys())
+    
     # Count effective first-preference votes
     vote_counts = {}  # candidate_id -> count
     
-    for voter_hash in voters:
-        # Get this voter's preferences in order
-        cursor = db_execute(
-            """SELECT candidate_id FROM ranked_votes 
-               WHERE voter_hash = ? AND position_code = ?
-               ORDER BY preference_rank""",
-            (voter_hash, position_code)
-        )
-        preferences = [row['candidate_id'] for row in cursor.fetchall()]
-        
+    for voter_hash, preferences in voter_preferences.items():
         # Find first non-excluded candidate
         for cand_id in preferences:
             cand_name = id_to_name.get(cand_id)
@@ -660,15 +685,14 @@ def compute_position_winner(position_code, excluded_names=None):
                 break
         # If all preferences are excluded, this voter's vote is exhausted
     
-    # Get candidate details and build results
+    # Build results using the already-fetched candidate data
     results = []
     for cand_id, count in vote_counts.items():
-        cursor = db_execute("SELECT id, name FROM candidates WHERE id = ?", (cand_id,))
-        cand = cursor.fetchone()
-        if cand:
+        cand_name = id_to_name.get(cand_id)
+        if cand_name:
             results.append({
-                'id': cand['id'],
-                'name': cand['name'],
+                'id': cand_id,
+                'name': cand_name,
                 'votes': count
             })
     
